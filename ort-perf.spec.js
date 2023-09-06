@@ -6,6 +6,7 @@ const rows = ["name", "provider", "pass", "threads", "avg", "min", "max", "p50",
 const tick = performance.now();
 const profiler = 0;
 const providers = ["wasm", "webgpu"];
+// const providers = ["webgpu"];
 const filter = "tjs-demo";
 
 // const providers = ["webgpu"];
@@ -39,21 +40,21 @@ const models = [
     { n: "vit-gpt2-image-captioning" },
 
     // transformers.js demo example
-    { e: "tjs-demo", n: "t5-encoder" },
-    { e: "tjs-demo", n: "t5-decoder" },
-    { e: "tjs-demo", n: "gpt2" },
-    { e: "tjs-demo", n: "bert-base-cased" },
-    { e: "tjs-demo", n: "bert-base-sentiment" },
-    { e: "tjs-demo", n: "distilbert-base-uncased-mnli" },
-    { e: "tjs-demo", n: "distilbert-distilled-squad" },
-    { e: "tjs-demo", n: "distilbart-cnn-6-6-encoder" },
-    { e: "tjs-demo", n: "distilbart-cnn-6-6-decoder" },
-    { e: "tjs-demo", n: "whisper-decoder" },
+    { e: "tjs-demo", n: "t5-encoder", opt: "&seqlen=128" },
+    { e: "tjs-demo", n: "t5-decoder", opt: "&seqlen=1&enc_seqlen=128" },
+    { e: "tjs-demo", n: "gpt2", opt: "&seqlen=16" },
+    { e: "tjs-demo", n: "bert-base-cased", opt: "&seqlen=9" },
+    { e: "tjs-demo", n: "bert-base-sentiment", opt: "&seqlen=63" },
+    { e: "tjs-demo", n: "distilbert-base-uncased-mnli", opt: "&seqlen=50" },
+    { e: "tjs-demo", n: "distilbert-distilled-squad", opt: "&seqlen=262" },
+    { e: "tjs-demo", n: "distilbart-cnn-6-6-encoder", opt: "&seqlen=168" },
+    { e: "tjs-demo", n: "distilbart-cnn-6-6-decoder", opt: "&seqlen=168" },
+    { e: "tjs-demo", n: "whisper-decoder", opt: "&seqlen=1" },
     { e: "tjs-demo", n: "whisper-encoder" },
-    { e: "tjs-demo", n: "vit-gpt2-image-captioning-encoder" },
-    { e: "tjs-demo", n: "vit-gpt2-image-captioning-decoder" },
+    { e: "tjs-demo", n: "vit-gpt2-image-captioning-encoder", opt: "&seqlen=168" },
+    { e: "tjs-demo", n: "vit-gpt2-image-captioning-decoder", opt: "&seqlen=168&min_query_count=10" },
     { e: "tjs-demo", n: "vit-base-patch16-224" },
-    { e: "tjs-demo", n: "clip-vit-base-patch16" },
+    { e: "tjs-demo", n: "clip-vit-base-patch16", opt: "&min_query_count=10" },
     { e: "tjs-demo", n: "detr-resnet-50" },
 
     { e: "" }
