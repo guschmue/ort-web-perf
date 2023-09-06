@@ -11,7 +11,9 @@ npm install
 We use mostly models provided by [transformers.js](https://github.com/xenova/transformers.js/).
 
 The steps to download the models we use:
+
 Set ORT_PERF_DIR is set to root of this project.
+
 Set TJS_DIR to the root of the transformers.js repo.
 
 ```
