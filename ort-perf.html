@@ -1,7 +1,7 @@
 <html>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous" />
-<script src="dist/ort.webgpu.min.js"> </script>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.webgpu.min.js"></script>
 
 <!--
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.0-dev.20230508-045c623415/dist/ort.min.js"></script>
@@ -105,17 +105,17 @@
         { n: "bart-large-encoder", g: "bert64", m: "tjs/facebook/bart-large-cnn/onnx/encoder_model.onnx" },
 
         // transformers.js demo example
-        { e: "tjs-demo", n: "t5-encoder", g: "t5-encoder", m: "tjs/t5-small/onnx/encoder_model.onnx", o: "&seqlen=131" },
-        { e: "tjs-demo", n: "t5-decoder", g: "t5-decoder", m: "tjs/t5-small/onnx/decoder_model_merged.onnx", o: "&seqlen=100" },
-        { e: "tjs-demo", n: "gpt2", g: "llm-decoder", m: "tjs/gpt2/onnx/decoder_model_merged.onnx", o: "&seqlen=64" },
+        { e: "tjs-demo", n: "t5-encoder", g: "t5-encoder", m: "tjs/t5-small/onnx/encoder_model.onnx", o: "&seqlen=128" },
+        { e: "tjs-demo", n: "t5-decoder", g: "t5-decoder", m: "tjs/t5-small/onnx/decoder_model_merged.onnx", o: "&seqlen=1&enc_seqlen=128" },
+        { e: "tjs-demo", n: "distilgpt2", g: "llm-decoder", m: "tjs/distilgpt2/onnx/decoder_model_merged.onnx", o: "&seqlen=16" },
         { e: "tjs-demo", n: "bert-base-cased", g: "bert64", m: "tjs/bert-base-cased/onnx/model.onnx", o: "&seqlen=9" },
         { e: "tjs-demo", n: "bert-base-sentiment", g: "bert64", m: "tjs/bert-base-multilingual-uncased-sentiment/onnx/model.onnx", o: "&seqlen=63" },
         { e: "tjs-demo", n: "distilbert-base-uncased-mnli", g: "bert64", m: "tjs/distilbert-base-uncased-mnli/onnx/model.onnx", o: "&seqlen=50" },
         { e: "tjs-demo", n: "distilbert-distilled-squad", g: "bert64", m: "tjs/distilbert-base-cased-distilled-squad/onnx/model.onnx", o: "&seqlen=262" },
         { e: "tjs-demo", n: "distilbart-cnn-6-6-encoder", g: "bert64", m: "tjs/distilbart-cnn-6-6/onnx/encoder_model.onnx", o: "&seqlen=168" },
-        { e: "tjs-demo", n: "distilbart-cnn-6-6-decoder", g: "bert64", m: "tjs/distilbart-cnn-6-6/onnx/decoder_model_merged.onnx", o: "&seqlen=168" },
-        { e: "tjs-demo", n: "whisper-decoder", g: "whisper-decoder", m: "tjs/openai/whisper-tiny/onnx/decoder_model_merged.onnx" },
-        { e: "tjs-demo", n: "whisper-encoder", g: "whisper-encoder", m: "tjs/openai/whisper-tiny/onnx/encoder_model.onnx", o: "&seqlen=1" },
+        { e: "tjs-demo", n: "distilbart-cnn-6-6-decoder", g: "bart-cnn", m: "tjs/distilbart-cnn-6-6/onnx/decoder_model_merged.onnx", o: "&seqlen=168" },
+        { e: "tjs-demo", n: "whisper-decoder", g: "whisper-decoder", m: "tjs/openai/whisper-tiny/onnx/decoder_model_merged.onnx", o: "&seqlen=1" },
+        { e: "tjs-demo", n: "whisper-encoder", g: "whisper-encoder", m: "tjs/openai/whisper-tiny/onnx/encoder_model.onnx" },
         { e: "tjs-demo", n: "vit-gpt2-image-captioning-encoder", g: "img224", m: "tjs/vit-gpt2-image-captioning/onnx/encoder_model.onnx", o: "&seqlen=168" },
         { e: "tjs-demo", n: "vit-gpt2-image-captioning-decoder", g: "bart-large-12", m: "tjs/vit-gpt2-image-captioning/onnx/decoder_model_merged.onnx", o: "&seqlen=168" },
         { e: "tjs-demo", n: "vit-base-patch16-224", g: "img224", m: "tjs/google/vit-base-patch16-224/onnx/model.onnx" },
@@ -172,7 +172,7 @@
                 continue;
             }
             const a = document.createElement("a");
-            a.href = `?model=models/${model.m}&filter=${config.filter}&gen=${model.g}&name=${model.n}&provider=${config.provider}${model.o}`;
+            a.href = `?filter=${config.filter}&provider=${config.provider}&name=${model.n}&gen=${model.g}&model=models/${model.m}${model.o}`;
             a.innerText = model.n;
             if (model.n == config.name) {
                 a.className = "active";
@@ -205,6 +205,7 @@
             min_query_count: "30",
             min_query_time: "10",
             seqlen: "128",
+            enc_seqlen: "128",
             go: 0,
             csv: 0,
             name: undefined
@@ -222,6 +223,7 @@
         config.verbose = parseInt(config.verbose);
         config.profile = parseInt(config.profile);
         config.seqlen = parseInt(config.seqlen);
+        config.enc_seqlen = parseInt(config.enc_seqlen);
         config.go = parseInt(config.go);
         config.profiler = parseInt(config.profiler);
         config.csv = parseInt(config.csv);
@@ -325,7 +327,7 @@
         throw new Error(`Input tensor type ${dtype} is not supported`);
     }
 
-    function make_inputs(gen, inputNames, seqlen) {
+    function make_inputs(gen, inputNames, seqlen, enc_seqlen) {
         const feed = {};
         const name = inputNames[0];
         if (gen == "sd-unet") {
@@ -375,12 +377,12 @@
             return feed;
         }
         if (gen == "whisper-decoder") {
-            feed["input_ids"] = fillTensor([1, 448], "int64", 1n);
+            feed["input_ids"] = fillTensor([1, seqlen], "int64", 1n);
             feed["encoder_hidden_states"] = fillTensor([1, 1500, 384], "float32");
             // past_key_values.0.encoder.value[FLOAT, batch_sizex6xencoder_sequence_length_outx64]
             // past_key_values.1.decoder.key[FLOAT, batch_sizex6xpast_decoder_sequence_lengthx64]
-            const decoder_shape = [1, 6, 448, 64];
-            const encoder_shape = [1, 6, 448, 64];
+            const decoder_shape = [1, 6, seqlen, 64];
+            const encoder_shape = [1, 6, 1500, 64];
             for (var k in inputNames) {
                 const v = inputNames[k];
                 if (v.startsWith("past_key_values.")) {
@@ -462,12 +464,12 @@
                     feed[v] = fillTensor([1, kvdim, seqlen, 64], "float32", 1.);
                 }
                 if (v.startsWith("encoder_attention_mask")) {
-                    feed["encoder_attention_mask"] = fillTensor([1, seqlen], "int64", 1n);
+                    feed["encoder_attention_mask"] = fillTensor([1, enc_seqlen], "int64", 1n);
                 }
             }
             feed['use_cache_branch'] = new ort.Tensor("bool", [0], [1]);
             feed["input_ids"] = fillTensor([1, seqlen], "int64", 99n);
-            feed["encoder_hidden_states"] = fillTensor([1, seqlen, hiddendim], "float32", 1);
+            feed["encoder_hidden_states"] = fillTensor([1, enc_seqlen, hiddendim], "float32", 1);
             return feed;
         }
         if (gen == "bart-cnn") {
@@ -476,10 +478,12 @@
                 if (v.startsWith("past_key_values")) {
                     feed[v] = fillTensor([1, 16, seqlen, 64], "float32", 1.);
                 }
+                if (v == "encoder_attention_mask") {
+                    feed["encoder_attention_mask"] = fillTensor([1, enc_seqlen], "int64", 1n);
+                }
             }
             feed['use_cache_branch'] = new ort.Tensor("bool", [0], [1]);
             feed["input_ids"] = fillTensor([1, seqlen], "int64", 99n);
-            feed["encoder_attention_mask"] = fillTensor([1, seqlen], "int64", 1n);
             feed["encoder_hidden_states"] = fillTensor([1, seqlen, 1024], "float32", 1);
             return feed;
         }
@@ -503,15 +507,14 @@
             return feed;
         }
         if (gen == "t5-encoder") {
-            feed['input_ids'] = fillTensor([1, 230], "int64", 99n);
-            feed['attention_mask'] = fillTensor([1, 230], "int64", 1n);
+            feed['input_ids'] = fillTensor([1, seqlen], "int64", 99n);
+            feed['attention_mask'] = fillTensor([1, seqlen], "int64", 1n);
             return feed;
         }
         if (gen == "t5-decoder" || gen == "flan-t5-decoder") {
-            // const seqlen = (gen == "t5-decoder") ? 128 : 230;
             feed['input_ids'] = fillTensor([1, seqlen], "int64", 99n);
             feed['encoder_hidden_states'] = fillTensor([1, seqlen, 512], "float32", 1);
-            const encoder_shape = (gen == "t5-decoder") ? [1, 8, seqlen, 64] : [1, 6, seqlen, 64];
+            const encoder_shape = (gen == "t5-decoder") ? [1, 8, enc_seqlen, 64] : [1, 6, enc_seqlen, 64];
             const decoder_shape = (gen == "t5-decoder") ? [1, 8, seqlen, 64] : [1, 6, seqlen, 64];
             for (var k in inputNames) {
                 const v = inputNames[k];
@@ -523,7 +526,7 @@
                     }
                 }
                 if (v == "encoder_attention_mask") {
-                    feed['encoder_attention_mask'] = fillTensor([1, seqlen], "int64", 1n);
+                    feed['encoder_attention_mask'] = fillTensor([1, enc_seqlen], "int64", 1n);
                 }
             }
             feed['use_cache_branch'] = new ort.Tensor("bool", [0], [1]);
@@ -627,7 +630,6 @@
             }
 
             if (config.profiler) {
-                // ort.env.logLevel = "verbose";
                 opt.enableProfiling = true;
                 if (config.provider == "webgpu") {
                     ort.env.webgpu.profilingMode = 'default';
@@ -636,11 +638,11 @@
 
             log(`loading... ${config.name},  ${config.provider}`);
             const sess = await ort.InferenceSession.create(await fetchAndCache(config.model), opt);
-            const feed = make_inputs(config.gen, sess.inputNames, config.seqlen);
+            const feed = make_inputs(config.gen, sess.inputNames, config.seqlen, config.enc_seqlen);
 
             if (config.profiler) {
                 log("profiling...");
-                for (var i = 0; i < 20; i++) {
+                for (var i = 0; i < 10; i++) {
                     const outputs = await sess.run(clone(feed));
                 }
                 await sess.endProfiling();

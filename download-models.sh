@@ -1,0 +1,35 @@
+#!/bin/bash
+
+python -m scripts.convert --model_id apple/mobilevit-small
+python -m scripts.convert --model_id albert-base-v2
+python -m scripts.convert --model_id bert-base-uncased
+python -m scripts.convert --model_id bert-base-cased
+python -m scripts.convert --model_id openai/whisper-tiny
+python -m scripts.convert --model_id t5-small
+python -m scripts.convert --model_id google/t5-v1_1-small
+python -m scripts.convert --model_id google/flan-t5-small
+python -m scripts.convert --model_id distilbert-base-uncased
+python -m scripts.convert --model_id roberta-base
+python -m scripts.convert --model_id gpt2
+python -m scripts.convert --model_id distilgpt2
+python -m scripts.convert --model_id nlpconnect/vit-gpt2-image-captioning
+python -m scripts.convert --model_id EleutherAI/gpt-neo-125M
+python -m scripts.convert --model_id openai/clip-vit-base-patch16
+python -m scripts.convert --model_id sshleifer/distilbart-cnn-6-6
+python -m scripts.convert --model_id facebook/bart-large-cnn
+python -m scripts.convert --model_id google/vit-base-patch16-224
+python -m scripts.convert --model_id typeform/distilbert-base-uncased-mnli
+python -m scripts.convert --model_id distilbert-base-cased-distilled-squad
+python -m scripts.convert --model_id distilbert-base-uncased
+python -m scripts.convert --model_id distilbert-base-cased
+python -m scripts.convert --model_id distilbert-base-uncased-distilled-squad
+python -m scripts.convert --model_id distilbert-base-uncased-finetuned-sst-2-english
+python -m scripts.convert --model_id Davlan/distilbert-base-multilingual-cased-ner-hrl
+python -m scripts.convert --model_id sentence-transformers/distilbert-base-nli-mean-tokens
+python -m scripts.convert --model_id sentence-transformers/distilbert-base-nli-stsb-mean-tokens
+python -m scripts.convert --model_id sentence-transformers/msmarco-distilbert-base-v4
+python -m scripts.convert --model_id cross-encoder/nli-deberta-v3-small
+python -m scripts.convert --model_id facebook/dino-vitb16
+python -m scripts.convert --model_id sentence-transformers/msmarco-distilbert-base-v4
+python -m scripts.convert --model_id nlptown/bert-base-multilingual-uncased-sentiment
+python -m scripts.convert --model_id facebook/detr-resnet-50

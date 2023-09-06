@@ -17,11 +17,9 @@ const config = {
       args: [
         '--enable-unsafe-webgpu',
         '--enable-gpu',
-        // '--gpu-vendor-id=0x10de',
         '--ignore-gpu-blocklist',
         '--enable-dawn-features=allow_unsafe_apis',
-        '--disable-dawn-features=disallow_unsafe_apis',
-        '--disk-cache-dir=c:\\temp\\foo'
+        '--disable-dawn-features=disallow_unsafe_apis'
       ],
       executablePath: path.join(process.env.HOME, 'AppData', 'Local', 'Google', 'Chrome SxS', 'Application', 'chrome.exe')
     }
