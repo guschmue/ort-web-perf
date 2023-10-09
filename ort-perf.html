@@ -17,12 +17,14 @@
 <style>
     .sidebar {
         margin: 0;
-        padding: 0;
+        padding: 1;
         width: 200px;
         background-color: #f1f1f1;
         position: fixed;
         height: 100%;
         overflow: auto;
+        overflow-y: scroll;
+        scrollbar-width: 8px;
 
     }
 
@@ -103,6 +105,7 @@
         { n: "vit-gpt2-image-captioning", g: "bart-large-12", m: "tjs/nlpconnect/vit-gpt2-image-captioning/onnx/decoder_model_merged.onnx" },
         { n: "sam-b-encoder", g: "sam-encoder", m: "sam/sam_vit_b-encoder.onnx", o: "&min_query_count=10" },
         { n: "sam-b-decoder", g: "sam-decoder", m: "sam/sam_vit_b-decoder.onnx" },
+        { n: "sam-h-decoder", g: "sam-decoder", m: "sam/sam_vit_h-decoder.onnx" },
         { n: "sam-h-decoder-static", g: "sam-decoder", m: "sam/segment-anything-vit-h-static-shapes-static.onnx" },
         { n: "bart-large-encoder", g: "bert64", m: "tjs/facebook/bart-large-cnn/onnx/encoder_model.onnx" },
         { n: "distilbert-base-uncased-mnli", g: "bert64", m: "tjs/distilbert-base-uncased-mnli/onnx/model.onnx", o: "&seqlen=50" },
@@ -110,6 +113,34 @@
         { n: "distilbart-cnn-6-6-decoder", g: "bart-cnn", m: "tjs/distilbart-cnn-6-6/onnx/decoder_model_merged.onnx", o: "&seqlen=168" },
         { n: "vit-gpt2-image-captioning-encoder", g: "img224", m: "tjs/vit-gpt2-image-captioning/onnx/encoder_model.onnx", o: "&seqlen=168" },
         { n: "vit-gpt2-image-captioning-decoder", g: "bart-large-12", m: "tjs/vit-gpt2-image-captioning/onnx/decoder_model_merged.onnx", o: "&seqlen=168" },
+        { n: "yolo-small", g: "img640x480", m: "tjs/hustvl/yolos-small/onnx/model.onnx" },
+        { n: "detr-resnet-50", g: "detr", m: "tjs/facebook/detr-resnet-50/onnx/model.onnx" },
+        { n: "squeezebert", g: "bert64", m: "tjs/squeezebert/squeezebert-uncased/onnx/model.onnx" },
+
+        // https://github.com/Megvii-BaseDetection/YOLOX
+        { n: "yolox-s", g: "img640x640", m: "partya/yolox/yolox_s.onnx" },
+        { n: "yolox-l", g: "img640x640", m: "partya/yolox/yolox_l.onnx" },
+        // https://github.com/mit-han-lab/efficientvit
+        { n: "efficientvit-l1", g: "img512x512", m: "partya/efficientvit/l1.onnx" },
+        // https://github.com/snap-research/EfficientFormer
+        { n: "efficientformer-l1", g: "img224", m: "partya/efficientformer/efficientformer_l1.onnx" },
+        { n: "efficientformer-l3", g: "img224", m: "partya/efficientformer/efficientformer_l3.onnx" },
+
+        // https://github.com/hustvl/TopFormer
+        // https://github.com/ibaiGorordo/ONNX-TopFormer-Semantic-Segmentation
+        { n: "topformer", g: "img512x512", m: "partya/TopFormer/TopFormer-S_512x512_2x8_160k.onnx" },
+
+        // https://github.com/NVlabs/SegFormer
+        // https://huggingface.co/spaces/chansung/segformer-tf-transformers/blob/main/segformer-b5-finetuned-ade-640-640.onnx
+        { n: "segformer", g: "img640x640", m: "partya/SegFormer/segformer-b5-finetuned-ade-640-640.onnx" },
+
+        // https://github.com/facebookresearch/HRViT (no onnx model)
+        // https://github.com/Gaurav14cs17/YOLOE (no pre-trained model)
+        //
+
+        { n: "-", g: "-", m: "p-" },
+        { n: "-", g: "-", m: "p-" },
+        { n: "-", g: "-", m: "p-" },
 
         // transformers.js demo example
         { e: "tjs-demo", n: "t5-encoder", g: "t5-encoder", m: "tjs/t5-small/onnx/encoder_model.onnx", o: "&seqlen=128" },
@@ -129,22 +160,13 @@
         { e: "tjs-demo", n: "clip-vit-base-patch16", g: "clip", m: "tjs/openai/clip-vit-base-patch16/onnx/model.onnx" },
         { e: "tjs-demo", n: "detr-resnet-50", g: "detr", m: "tjs/facebook/detr-resnet-50/onnx/model.onnx" },
 
-        { e: "u1", n: "yolox-s", g: "img640x640", m: "partya/yolox/yolox_s.onnx" }, // https://github.com/Megvii-BaseDetection/YOLOX
-        { e: "u1", n: "topformer", g: "img640x640", m: "partya/TopFormer/TopFormer.onnx" }, // https://github.com/hustvl/TopFormer
-        // https://github.com/facebookresearch/HRViT
-        // https://github.com/NVlabs/SegFormer
-        // https://github.com/snap-research/EfficientFormer
-        // https://github.com/facebookresearch/segment-anything
-        // https://github.com/Gaurav14cs17/YOLOE
-        // https://github.com/mit-han-lab/efficientvit
-
         // not working
+
+        // to large, 2.5GB
+        { e: "error", n: "sam-h-encoder", g: "sam-encoder", m: "sam/sam_vit_h-encoder.onnx", o: "&min_query_count=10" },
 
         // /swin/pooler/GlobalAveragePool" failed. Error: Error: Pool ops supports 2-D inputs only for now.
         { e: "error", n: "swin-tiny", g: "img224", m: "tjs/microsoft/swin-tiny-patch4-window7-224/onnx/model.onnx" },
-
-        // Error: non concat dimensions must match
-        { e: "error", n: "yolo-small", g: "img640x480", m: "tjs/hustvl/yolos-small/onnx/model.onnx" },
 
         // Conv > 2D
         { e: "error", n: "wav2vec", g: "wav2vec", m: "tjs/facebook/wav2vec2-base-960h/onnx/model.onnx" },
@@ -159,11 +181,6 @@
         { e: "error", n: "bart-large-decoder", g: "bart-large", m: "tjs/facebook/bart-large-cnn/onnx/decoder_model_merged.ort" },
         { e: "error", n: "bart-large-cnn", g: "bart-large", m: "tjs/facebook/bart-large-cnn/onnx/decoder_model_merged.ort" },
 
-        // Add with bcast
-        { e: "error", n: "detr-resnet-50", g: "detr", m: "tjs/facebook/detr-resnet-50/onnx/model.onnx" },
-
-        // GroupedConv
-        { e: "error", n: "squeezebert", g: "bert64", m: "tjs/squeezebert/squeezebert-uncased/onnx/model.onnx" },
 
         // OOM
         { e: "error", n: "codegen-350M-mono", g: "llm-decoder", m: "tjs/Salesforce/codegen-350M-mono/onnx/decoder_model_merged.ort" },
@@ -432,6 +449,10 @@
             feed[name] = randomTensor([1, 3, 640, 640], "float32");
             return feed;
         }
+        if (gen == "img512x512") {
+            feed[name] = randomTensor([1, 3, 512, 512], "float32");
+            return feed;
+        }
         if (gen == "img224nhwc") {
             feed[name] = rampTensor([1, 224, 224], "float32");
             return feed;
@@ -604,7 +625,7 @@
         "int64": BigInt64Array,
     };
 
-    const rows = ["name", "provider", "pass", "threads", "avg", "min", "max", "p50", "p95", "p99", "count", "mem", "tag"];
+    const rows = ["name", "provider", "pass", "threads", "avg", "min", "max", "p50", "p95", "p99", "count", "mem", "tag", "platform", "fist_run", "load"];
 
     async function bench() {
         try {
@@ -688,7 +709,9 @@
 
             log(`loading... ${config.name},  ${config.provider}`);
             const model_bytes = await fetchAndCache("models/" + config.model);
+            const load_start = performance.now();
             var sess = await ort.InferenceSession.create(model_bytes, opt);
+            const load_stop = performance.now();
             const feed = make_inputs(config.gen, sess.inputNames, config);
 
             if (config.provider == "webgpu" && config.io_binding) {
@@ -712,10 +735,12 @@
 
             log("warmup...");
             await sleep(200);
+            let fist_run = 0;
             {
                 const start = performance.now();
                 let outputs = await sess.run(clone(feed));
-                log(`1st run took ${((performance.now() - start)).toFixed(2)}ms`);
+                fist_run = performance.now() - start;
+                log(`1st run took ${fist_run.toFixed(2)}ms`);
                 if (config.verbose) {
                     console.log(outputs);
                 }
@@ -754,6 +779,9 @@
                 }
             } while (now < end_time || query_count < config.min_query_count);
             const r = logPercentiles(config, durations);
+            r.fist_run = fist_run.toFixed(2);
+            r.load = (load_stop - load_start).toFixed(2);
+            r.platform = ""
             if (config.csv) {
                 r.tag = "@@2";
                 const csv = rows.map((x) => { return r[x]; }).join(",");
