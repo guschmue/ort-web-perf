@@ -68,6 +68,8 @@
             <p class="text-lg-start">
             <div id="results" style="font: 1em consolas;"></div>
             </p>
+            <div id="download"></div>
+
             <p class="text-lg-start">
             <div id="status" style="font: 1em consolas;"></div>
             </p>
@@ -75,122 +77,9 @@
     </div>
 </body>
 
+<script src="./ort-perf-models.js"> </script>
+
 <script>
-    const models = [
-        // working
-        { n: "mobilenet-v2", g: "img224", m: "mobilenet_v2/model-12.onnx" },
-        { n: "albert-base-v2", g: "bert64", m: "tjs/albert-base-v2/onnx/model.onnx" },
-        { n: "bert-base-uncased", g: "bert64", m: "tjs/bert-base-uncased/onnx/model.onnx" },
-        { n: "distilbert-base-uncased", g: "bert64", m: "tjs/distilbert-base-uncased/onnx/model.onnx" },
-        { n: "roberta-base", g: "bert64", m: "tjs/roberta-base/onnx/model.onnx" },
-        { n: "sentence-trans-msbert", g: "bert64", m: "tjs/sentence-transformers/msmarco-distilbert-base-v4/onnx/model.onnx" },
-        { n: "nli-deberta-v3-small", g: "bert64", m: "tjs/cross-encoder/nli-deberta-v3-small/onnx/model.onnx" },
-        { n: "t5-encoder", g: "t5-encoder", m: "tjs/t5-small/onnx/encoder_model.onnx" },
-        { n: "t5-decoder-seq1", g: "t5-decoder", m: "tjs/t5-small/onnx/decoder_model_merged.onnx", o: "&seqlen=1" },
-        { n: "t5-v1.1-encoder", g: "t5-encoder", m: "tjs/google/t5-v1_1-small/onnx/encoder_model.onnx" },
-        { n: "t5-v1.1-decoder-seq1", g: "flan-t5-decoder", m: "tjs/google/t5-v1_1-small/onnx/decoder_model_merged.onnx", o: "&seqlen=1" },
-        { n: "flan-t5-encoder", g: "t5-encoder", m: "tjs/google/flan-t5-small/onnx/encoder_model.onnx" },
-        { n: "flan-t5-decoder-seq1", g: "flan-t5-decoder", m: "tjs/google/flan-t5-small/onnx/decoder_model_merged.onnx", o: "&seqlen=1" },
-
-        // FIXME: use_cache_branch=false because some issue with the model on wasm and webgpu
-        { n: "gpt-neo-125m", g: "llm-decoder", m: "tjs/EleutherAI/gpt-neo-125M/onnx/decoder_model_merged.onnx", o: "&use_cache_branch=1" },
-        { n: "distilgpt2-seq16", g: "llm-decoder", m: "tjs/distilgpt2/onnx/decoder_model_merged.onnx", o: "&seqlen=16&use_cache_branch=1" },
-        { n: "gpt2", g: "llm-decoder", m: "tjs/gpt2/onnx/decoder_model_merged.onnx", o: "&seqlen=8&use_cache_branch=1" },
-
-        { n: "whisper-decoder", g: "whisper-decoder", m: "tjs/openai/whisper-tiny/onnx/decoder_model_merged.onnx", o: "&seqlen=1" },
-        { n: "whisper-encoder", g: "whisper-encoder", m: "tjs/openai/whisper-tiny/onnx/encoder_model.onnx" },
-        { n: "dino-vitb16", g: "img224", m: "tjs/facebook/dino-vitb16/onnx/model.onnx" },
-        { n: "clip-vit-base-patch16", g: "clip", m: "tjs/openai/clip-vit-base-patch16/onnx/model.onnx" },
-        { n: "vit-base-patch16-224", g: "img224", m: "tjs/google/vit-base-patch16-224/onnx/model.onnx" },
-        { n: "vit-gpt2-image-captioning", g: "bart-large-12", m: "tjs/nlpconnect/vit-gpt2-image-captioning/onnx/decoder_model_merged.onnx" },
-        { n: "sam-b-encoder", g: "sam-encoder", m: "sam/sam_vit_b-encoder.onnx", o: "&min_query_count=10" },
-        { n: "sam-b-decoder", g: "sam-decoder", m: "sam/sam_vit_b-decoder.onnx" },
-        { n: "sam-h-decoder", g: "sam-decoder", m: "sam/sam_vit_h-decoder.onnx" },
-        { n: "sam-h-decoder-static", g: "sam-decoder", m: "sam/segment-anything-vit-h-static-shapes-static.onnx" },
-        { n: "bart-large-encoder", g: "bert64", m: "tjs/facebook/bart-large-cnn/onnx/encoder_model.onnx" },
-        { n: "distilbert-base-uncased-mnli", g: "bert64", m: "tjs/distilbert-base-uncased-mnli/onnx/model.onnx", o: "&seqlen=50" },
-        { n: "distilbart-cnn-6-6-encoder", g: "bert64", m: "tjs/distilbart-cnn-6-6/onnx/encoder_model.onnx", o: "&seqlen=168" },
-        { n: "distilbart-cnn-6-6-decoder", g: "bart-cnn", m: "tjs/distilbart-cnn-6-6/onnx/decoder_model_merged.onnx", o: "&seqlen=168" },
-        { n: "vit-gpt2-image-captioning-encoder", g: "img224", m: "tjs/vit-gpt2-image-captioning/onnx/encoder_model.onnx", o: "&seqlen=168" },
-        { n: "vit-gpt2-image-captioning-decoder", g: "bart-large-12", m: "tjs/vit-gpt2-image-captioning/onnx/decoder_model_merged.onnx", o: "&seqlen=168" },
-        { n: "yolo-small", g: "img640x480", m: "tjs/hustvl/yolos-small/onnx/model.onnx" },
-        { n: "detr-resnet-50", g: "detr", m: "tjs/facebook/detr-resnet-50/onnx/model.onnx" },
-        { n: "squeezebert", g: "bert64", m: "tjs/squeezebert/squeezebert-uncased/onnx/model.onnx" },
-
-        // https://github.com/Megvii-BaseDetection/YOLOX
-        { n: "yolox-s", g: "img640x640", m: "partya/yolox/yolox_s.onnx" },
-        { n: "yolox-l", g: "img640x640", m: "partya/yolox/yolox_l.onnx" },
-        // https://github.com/mit-han-lab/efficientvit
-        { n: "efficientvit-l1", g: "img512x512", m: "partya/efficientvit/l1.onnx" },
-        // https://github.com/snap-research/EfficientFormer
-        { n: "efficientformer-l1", g: "img224", m: "partya/efficientformer/efficientformer_l1.onnx" },
-        { n: "efficientformer-l3", g: "img224", m: "partya/efficientformer/efficientformer_l3.onnx" },
-
-        // https://github.com/hustvl/TopFormer
-        // https://github.com/ibaiGorordo/ONNX-TopFormer-Semantic-Segmentation
-        { n: "topformer", g: "img512x512", m: "partya/TopFormer/TopFormer-S_512x512_2x8_160k.onnx" },
-
-        // https://github.com/NVlabs/SegFormer
-        // https://huggingface.co/spaces/chansung/segformer-tf-transformers/blob/main/segformer-b5-finetuned-ade-640-640.onnx
-        { n: "segformer", g: "img640x640", m: "partya/SegFormer/segformer-b5-finetuned-ade-640-640.onnx" },
-
-        // https://github.com/facebookresearch/HRViT (no onnx model)
-        // https://github.com/Gaurav14cs17/YOLOE (no pre-trained model)
-        //
-
-        { n: "-", g: "-", m: "p-" },
-        { n: "-", g: "-", m: "p-" },
-        { n: "-", g: "-", m: "p-" },
-
-        // transformers.js demo example
-        { e: "tjs-demo", n: "t5-encoder", g: "t5-encoder", m: "tjs/t5-small/onnx/encoder_model.onnx", o: "&seqlen=128" },
-        { e: "tjs-demo", n: "t5-decoder-seq1", g: "t5-decoder", m: "tjs/t5-small/onnx/decoder_model_merged.onnx", o: "&seqlen=1&enc_seqlen=128" },
-        { e: "tjs-demo", n: "distilgpt2", g: "llm-decoder", m: "tjs/distilgpt2/onnx/decoder_model_merged.onnx", o: "&seqlen=16" },
-        { e: "tjs-demo", n: "bert-base-cased", g: "bert64", m: "tjs/bert-base-cased/onnx/model.onnx", o: "&seqlen=9" },
-        { e: "tjs-demo", n: "bert-base-sentiment", g: "bert64", m: "tjs/bert-base-multilingual-uncased-sentiment/onnx/model.onnx", o: "&seqlen=63" },
-        { e: "tjs-demo", n: "distilbert-base-uncased-mnli", g: "bert64", m: "tjs/distilbert-base-uncased-mnli/onnx/model.onnx", o: "&seqlen=50" },
-        { e: "tjs-demo", n: "distilbert-distilled-squad", g: "bert64", m: "tjs/distilbert-base-cased-distilled-squad/onnx/model.onnx", o: "&seqlen=262" },
-        { e: "tjs-demo", n: "distilbart-cnn-6-6-encoder", g: "bert64", m: "tjs/distilbart-cnn-6-6/onnx/encoder_model.onnx", o: "&seqlen=168" },
-        { e: "tjs-demo", n: "distilbart-cnn-6-6-decoder", g: "bart-cnn", m: "tjs/distilbart-cnn-6-6/onnx/decoder_model_merged.onnx", o: "&seqlen=168" },
-        { e: "tjs-demo", n: "whisper-decoder-seq1", g: "whisper-decoder", m: "tjs/openai/whisper-tiny/onnx/decoder_model_merged.onnx", o: "&seqlen=1" },
-        { e: "tjs-demo", n: "whisper-encoder", g: "whisper-encoder", m: "tjs/openai/whisper-tiny/onnx/encoder_model.onnx" },
-        { e: "tjs-demo", n: "vit-gpt2-image-captioning-encoder", g: "img224", m: "tjs/vit-gpt2-image-captioning/onnx/encoder_model.onnx", o: "&seqlen=168" },
-        { e: "tjs-demo", n: "vit-gpt2-image-captioning-decoder", g: "bart-large-12", m: "tjs/vit-gpt2-image-captioning/onnx/decoder_model_merged.onnx", o: "&seqlen=168" },
-        { e: "tjs-demo", n: "vit-base-patch16-224", g: "img224", m: "tjs/google/vit-base-patch16-224/onnx/model.onnx" },
-        { e: "tjs-demo", n: "clip-vit-base-patch16", g: "clip", m: "tjs/openai/clip-vit-base-patch16/onnx/model.onnx" },
-        { e: "tjs-demo", n: "detr-resnet-50", g: "detr", m: "tjs/facebook/detr-resnet-50/onnx/model.onnx" },
-
-        // not working
-
-        // to large, 2.5GB
-        { e: "error", n: "sam-h-encoder", g: "sam-encoder", m: "sam/sam_vit_h-encoder.onnx", o: "&min_query_count=10" },
-
-        // /swin/pooler/GlobalAveragePool" failed. Error: Error: Pool ops supports 2-D inputs only for now.
-        { e: "error", n: "swin-tiny", g: "img224", m: "tjs/microsoft/swin-tiny-patch4-window7-224/onnx/model.onnx" },
-
-        // Conv > 2D
-        { e: "error", n: "wav2vec", g: "wav2vec", m: "tjs/facebook/wav2vec2-base-960h/onnx/model.onnx" },
-
-        // Transpose freemem
-        { e: "error", n: "mobilevit", g: "mobilevit", m: "tjs/apple/mobilevit-small/onnx/model.onnx" },
-
-        // matmul fails
-        { e: "error", n: "tiny_starcoder_py", g: "starcoder", m: "tjs/bigcode/tiny_starcoder_py/onnx/decoder_model_merged.onnx" },
-
-        // decoder: Gather" failed. Error: Error: no GPU data for input: 1238119040
-        { e: "error", n: "bart-large-decoder", g: "bart-large", m: "tjs/facebook/bart-large-cnn/onnx/decoder_model_merged.ort" },
-        { e: "error", n: "bart-large-cnn", g: "bart-large", m: "tjs/facebook/bart-large-cnn/onnx/decoder_model_merged.ort" },
-
-
-        // OOM
-        { e: "error", n: "codegen-350M-mono", g: "llm-decoder", m: "tjs/Salesforce/codegen-350M-mono/onnx/decoder_model_merged.ort" },
-
-        // Gather fails
-        { e: "error", n: "xlm-roberta-base", g: "bert64", m: "tjs/xlm-roberta-base/onnx/model.ort" },
-        { e: "error", n: "sd-unet-fp16", g: "sd-unet", m: "sd-fp16/unet/model.ort" },
-        { e: "error", n: "sd-vae-fp16", g: "sd-vae", m: "sd-fp16/unet/model.ort" },
-    ];
-
     function populateNav(config) {
         const nav = document.getElementById("nav");
         for (let i = 0; i < models.length; i++) {
@@ -212,6 +101,20 @@
             }
             nav.appendChild(a);
         }
+
+        if (config.model === undefined && config.name !== undefined) {
+            for (let i = 0; i < models.length; i++) {
+                const model = models[i];
+                if (model.n == config.name && model.e == config.filter) {
+                    config.model = model.m;
+                    config.gen = model.g;
+                    break;
+                }
+            }
+            if (config.model === undefined) {
+                throw new Error(`${config.filter} / ${config.name} not defined`);
+            }
+        }
     }
 
     function log(i) {
@@ -223,14 +126,14 @@
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    function getQueryVariables() {
+    function getConfig() {
         const query = window.location.search.substring(1);
         var config = {
             model: undefined,
             name: undefined,
             filter: "default",
             provider: "webgpu",
-            device: "cpu",
+            device: "gpu",
             threads: "1",
             profiler: "0",
             gen: "img224",
@@ -239,10 +142,13 @@
             min_query_time: "10",
             seqlen: "128",
             enc_seqlen: "128",
-            use_cache_branch: "1",
             io_binding: "0",
+            static_shapes: "0",
+            prevent_fallback: "0",
+            preferred_layout: "NHWC",
             go: 0,
             csv: 0,
+            download: 0,
             name: undefined
         };
         let vars = query.split("&");
@@ -259,11 +165,12 @@
         config.profile = parseInt(config.profile);
         config.seqlen = parseInt(config.seqlen);
         config.enc_seqlen = parseInt(config.enc_seqlen);
-        config.use_cache_branch = (config.use_cache_branch == "1");
         config.io_binding = (config.io_binding == "1");
+        config.static_shapes = (config.static_shapes == "1");
         config.go = parseInt(config.go);
         config.profiler = parseInt(config.profiler);
         config.csv = parseInt(config.csv);
+        config.download = parseInt(config.download);
         config.min_query_time = parseFloat(config.min_query_time) * 1000;
         config.min_query_count = parseInt(config.min_query_count);
         return config;
@@ -302,14 +209,14 @@
             if (cachedResponse == undefined) {
                 await cache.add(url);
                 cachedResponse = await cache.match(url);
+                log(`${url} (network)`);
             } else {
-                log(`from cache: ${url}`);
+                log(`${url} (cached)`);
             }
-
             const data = await cachedResponse.arrayBuffer();
             return data;
         } catch (error) {
-            log(`cache failed: ${url}`);
+            log(`${url} (network)`);
             return await fetch(url).then(response => response.arrayBuffer());
         }
     }
@@ -322,9 +229,14 @@
         switch (dtype) {
             case "float32":
                 return new ort.Tensor(Float32Array.from({ length: size }, () => val), shape);
+            case "float16":
+                return new ort.Tensor("float16", Uint16Array.from({ length: size }, () => val), shape);
             case "int32":
                 return new ort.Tensor(Int32Array.from({ length: size }, () => val), shape);
             case "int64":
+                if (typeof (val) != BigInt) {
+                    val = BigInt(val)
+                }
                 return new ort.Tensor(BigInt64Array.from({ length: size }, () => val), shape);
         }
         throw new Error(`Input tensor type ${dtype} is not supported`);
@@ -368,13 +280,17 @@
         const feed = {};
         const name = inputNames[0];
         if (gen == "sd-unet") {
-            feed["sample"] = rampTensor([1, 3, 512, 512], "float32");
+            feed["sample"] = fillTensor([1, 4, 64, 64], "float16");
             feed["timestep"] = fillTensor([1], "int64", 1n);
-            feed["encoder_hidden_states"] = fillTensor([1, 3, 512, 512], "float32");
+            feed["encoder_hidden_states"] = fillTensor([1, 77, 768], "float16");
             return feed;
         }
         if (gen == "sd-vae") {
-            feed["latent_sample"] = rampTensor([1, 3, 512, 512], "float32");
+            feed["latent_sample"] = fillTensor([1, 4, 64, 64], "float16");
+            return feed;
+        }
+        if (gen == "sd-vae-fp32") {
+            feed["latent_sample"] = fillTensor([1, 4, 64, 64], "float32");
             return feed;
         }
         if (gen == "vit") {
@@ -430,11 +346,15 @@
                     }
                 }
             }
-            feed['use_cache_branch'] = new ort.Tensor("bool", [config.use_cache_branch], [1]);
+            feed['use_cache_branch'] = new ort.Tensor("bool", [0], [1]);
             return feed;
         }
         if (gen == "img512") {
             feed[name] = rampTensor([1, 3, 512, 512], "float32");
+            return feed;
+        }
+        if (gen == "img224-fp16") {
+            feed[name] = fillTensor([1, 3, 224, 224], "float16");
             return feed;
         }
         if (gen == "img224") {
@@ -480,12 +400,12 @@
             for (var k in inputNames) {
                 const v = inputNames[k];
                 if (v.startsWith("past_key_values")) {
-                    feed[v] = fillTensor([1, 12, seqlen, 64], "float32", .5);
+                    feed[v] = fillTensor([1, 12, 0, 64], "float32", .5);
                 }
             }
-            feed['use_cache_branch'] = new ort.Tensor("bool", [config.use_cache_branch], [1]);
-            feed["input_ids"] = fillTensor([1, seqlen + 1], "int64", 99n);
-            feed["attention_mask"] = fillTensor([1, seqlen + 1], "int64", 1n);
+            feed['use_cache_branch'] = new ort.Tensor("bool", [false], [1]);
+            feed["input_ids"] = fillTensor([1, seqlen], "int64", 99n);
+            feed["attention_mask"] = fillTensor([1, seqlen], "int64", 1n);
             return feed;
         }
         if (gen == "starcoder") {
@@ -495,7 +415,7 @@
                     feed[v] = fillTensor([1, seqlen, 128], "float32", 1.);
                 }
             }
-            feed['use_cache_branch'] = new ort.Tensor("bool", [config.use_cache_branch], [1]);
+            feed['use_cache_branch'] = new ort.Tensor("bool", [0], [1]);
             feed["input_ids"] = fillTensor([1, seqlen], "int64", 99n);
             feed["attention_mask"] = fillTensor([1, seqlen], "int64", 1n);
             return feed;
@@ -512,7 +432,7 @@
                     feed["encoder_attention_mask"] = fillTensor([1, enc_seqlen], "int64", 1n);
                 }
             }
-            feed['use_cache_branch'] = new ort.Tensor("bool", [config.use_cache_branch], [1]);
+            feed['use_cache_branch'] = new ort.Tensor("bool", [0], [1]);
             feed["input_ids"] = fillTensor([1, seqlen], "int64", 99n);
             feed["encoder_hidden_states"] = fillTensor([1, enc_seqlen, hiddendim], "float32", 1);
             return feed;
@@ -527,7 +447,7 @@
                     feed["encoder_attention_mask"] = fillTensor([1, enc_seqlen], "int64", 1n);
                 }
             }
-            feed['use_cache_branch'] = new ort.Tensor("bool", [config.use_cache_branch], [1]);
+            feed['use_cache_branch'] = new ort.Tensor("bool", [0], [1]);
             feed["input_ids"] = fillTensor([1, seqlen], "int64", 99n);
             feed["encoder_hidden_states"] = fillTensor([1, seqlen, 1024], "float32", 1);
             return feed;
@@ -548,7 +468,11 @@
             return feed;
         }
         if (gen == "sam-encoder") {
-            feed["input_image"] = fillTensor([224, 224, 3], "float32", 1.);
+            feed["input_image"] = fillTensor([1024, 1024, 3], "float32", 1.);
+            return feed;
+        }
+        if (gen == "sam-mobile-encoder") {
+            feed["input_image"] = fillTensor([1, 3, 1024, 1024], "float32", 1.);
             return feed;
         }
         if (gen == "t5-encoder") {
@@ -556,11 +480,16 @@
             feed['attention_mask'] = fillTensor([1, seqlen], "int64", 1n);
             return feed;
         }
-        if (gen == "t5-decoder" || gen == "flan-t5-decoder") {
-            feed['input_ids'] = fillTensor([1, seqlen], "int64", 99n);
-            feed['encoder_hidden_states'] = fillTensor([1, seqlen, 512], "float32", 1);
+        if (gen.includes("t5-decoder", "flan-t5-decoder", "t5-decoder-i32")) {
+            let type = "int64";
+            if (gen.includes("-i32")) {
+                gen = gen.replace("-i32", "")
+                type = "int32"
+            }
+            feed['input_ids'] = fillTensor([1, seqlen], type, 99);
+            feed['encoder_hidden_states'] = fillTensor([1, enc_seqlen, 512], "float32", 1);
             const encoder_shape = (gen == "t5-decoder") ? [1, 8, enc_seqlen, 64] : [1, 6, enc_seqlen, 64];
-            const decoder_shape = (gen == "t5-decoder") ? [1, 8, seqlen, 64] : [1, 6, seqlen, 64];
+            const decoder_shape = (gen == "t5-decoder") ? [1, 8, 0, 64] : [1, 6, 0, 64];
             for (var k in inputNames) {
                 const v = inputNames[k];
                 if (v.startsWith("past_key_values.")) {
@@ -571,61 +500,108 @@
                     }
                 }
                 if (v == "encoder_attention_mask") {
-                    feed['encoder_attention_mask'] = fillTensor([1, enc_seqlen], "int64", 1n);
+                    feed['encoder_attention_mask'] = fillTensor([1, enc_seqlen], type, 1);
                 }
             }
-            feed['use_cache_branch'] = new ort.Tensor("bool", [config.use_cache_branch], [1]);
+            feed['use_cache_branch'] = new ort.Tensor("bool", [false], [1]);
             return feed;
         }
         throw new Error(`unknown gendata ${gen}`);
     }
 
-    const progress = document.getElementById('progress');
-    const config = getQueryVariables();
-
-    populateNav(config);
-
-    if (config.model === undefined && config.name !== undefined) {
-        for (let i = 0; i < models.length; i++) {
-            const model = models[i];
-            if (model.n == config.name && model.e == config.filter) {
-                config.model = model.m;
-                config.gen = model.g;
-                break;
-            }
+    function create_download_link(cons_cout) {
+        let link = document.getElementById('download').childNodes[0];
+        if (link === undefined) {
+            link = document.createElement("a", "download-link");
+            link.download = "profiler.log";
+            link.innerText = "Download";
+            document.getElementById('download').appendChild(link);
         }
-        if (config.model === undefined) {
-            throw new Error(`${config.filter} / ${config.name} not defined`);
-        }
+        const base64 = btoa(cons_out.join('\n'));
+        link.href = `data:application/json;base64,${base64}`;
     }
 
-    ort.env.wasm.numThreads = config.threads;
-    ort.env.wasm.simd = true;
-    ort.env.wasm.proxy = (config.provider == "webnn");
-
-    if (config.provider == "webgpu") {
-        if (!("gpu" in navigator)) {
-            throw new Error("webgpu is NOT supported");
-        }
-        navigator.gpu.requestAdapter().then(adapter => {
-            adapter.requestAdapterInfo().then(info => {
-                log(`GPU: ${info.description}`);
-            });
-        });
-    }
-    if (config.provider == "webnn") {
-        if (!("ml" in navigator)) {
-            throw new Error("webnn is NOT supported");
-        }
-    }
     const type_to_func = {
         "float32": Float32Array,
+        "float16": Uint16Array,
         "int32": Int32Array,
         "BigInt64Array": BigInt64Array,
         "int64": BigInt64Array,
     };
 
-    const rows = ["name", "provider", "pass", "threads", "avg", "min", "max", "p50", "p95", "p99", "count", "mem", "tag", "platform", "fist_run", "load"];
+    function clone(x) {
+        if (ort.env.wasm.proxy) {
+            let feed = {};
+            for (const [key, value] of Object.entries(x)) {
+                let func = type_to_func[value.type];
+                feed[key] = new ort.Tensor(value.type, func.from(value.data), value.dims);
+            }
+            return feed;
+        } else {
+            return x;
+        }
+    }
+
+    function copy_kv_caches(feed, outputs) {
+        for (const [name, t] of Object.entries(outputs)) {
+            if (name.startsWith('present')) {
+                let newName = name.replace('present', 'past_key_values');
+                if (t.dims[0] == 0) {
+                    // Optimization introduced by optimum to reuse past key values: keep previous value.
+                    t.dispose();
+                } else {
+                    // this dispose is critical since we own that gpu-buffer
+                    feed[newName].dispose();
+                    feed[newName] = t;
+                }
+            }
+        }
+    }
+
+    function apply_io_binding(sess, opt, feed) {
+        opt.preferredOutputLocation = {};
+        const kv_names = sess.outputNames.filter(n => n.includes('present') || n.includes('hidden_state'));
+        kv_names.forEach(name => {
+            opt.preferredOutputLocation[`${name}`] = "gpu-buffer";
+        });
+    }
+
+
+    const rows = [
+        "name", "provider", "pass", "threads", "avg", "min", "max", "p50", "p95", "p99",
+        "count", "mem", "tag", "platform", "fist_run", "load"
+    ];
+
+    var cons_out = [];
+
+    const progress = document.getElementById('progress');
+    const config = getConfig();
+
+    ort.env.wasm.numThreads = config.threads;
+    ort.env.wasm.simd = true;
+    ort.env.wasm.proxy = (config.provider == "webnn");
+
+    populateNav(config);
+
+
+    switch (config.provider) {
+        case "webgpu":
+            if (!("gpu" in navigator)) {
+                throw new Error("webgpu is NOT supported");
+            }
+            break;
+        case "webnn":
+            if (!("ml" in navigator)) {
+                throw new Error("webnn is NOT supported");
+            }
+            break;
+    }
+
+    if (config.download) {
+        console.log = function (message) {
+            cons_out.push(message);
+        };
+    }
 
     async function bench() {
         try {
@@ -633,7 +609,8 @@
             const use_proxy = ort.env.wasm.proxy;
 
             const opt = {
-                executionProviders: [config.provider],
+                executionProviders: ["wasm"],
+                enableProfiling: config.profiler > 0,
                 enableMemPattern: false,
                 enableCpuMemArena: false,
                 extra: {
@@ -641,11 +618,13 @@
                         disable_prepacking: "1",
                         use_device_allocator_for_initializers: "1",
                         use_ort_model_bytes_directly: "1",
-                        use_ort_model_bytes_for_initializers: "1"
+                        use_ort_model_bytes_for_initializers: "1",
+                        disable_cpu_ep_fallback: config.prevent_fallback,
                     }
-                }
+                },
+                freeDimensionOverrides: { batch_size: 1, },
             };
-            // opt.getGraphOptimzationLevel = "disable";
+
             if (config.verbose) {
                 opt.logSeverityLevel = 0;
                 opt.logVerbosityLevel = 0;
@@ -653,83 +632,79 @@
                 ort.env.logLevel = "verbose";
             }
 
-            if (config.provider == "webnn") {
-                opt.executionProviders = [{
-                    name: "webnn",
-                    deviceType: config.device,
-                    powerPreference: 'default'
-                }];
-            }
-
-            function clone(x) {
-                if (use_proxy) {
-                    let feed = {};
-                    for (const [key, value] of Object.entries(x)) {
-                        let func = type_to_func[value.type];
-                        feed[key] = new ort.Tensor(func.from(value.data), value.dims);
+            switch (config.provider) {
+                case "webnn":
+                    opt.executionProviders = [{
+                        name: "webnn",
+                        deviceType: config.device,
+                        powerPreference: 'default'
+                    }];
+                    break;
+                case "webgpu":
+                    opt.executionProviders = [{
+                        name: "webgpu",
+                        preferredLayout: config.preferred_layout
+                    }];
+                    if (config.profiler) {
+                        ort.env.webgpu.profilingMode = 'default';
                     }
-                    return feed;
-                } else {
-                    return x;
+                    break;
+            }
+
+            // burn in static shapes
+            if (config.name.includes("sd-unet-fp16")) {
+                opt.freeDimensionOverrides = {
+                    num_channels: 4,
+                    height: 64,
+                    width: 64,
+                    steps: 1,
+                    sequence_length: 77,
                 }
             }
 
-            function copy_kv_caches(feed, outputs) {
-                for (const [name, t1] of Object.entries(outputs)) {
-                    if (name.startsWith('present')) {
-                        let t = t1;
-                        let newName = name.replace('present', 'past_key_values');
-                        if (t.dims[0] == 0) {
-                            // Optimization introduced by optimum to reuse past key values. So, we just replace the constant
-                            t.dispose();
-                        } else {
-                            feed[newName] = t;
-                        }
-                    }
-                }
-            }
-
-            async function apply_io_binding(sess, opt, feed) {
-                opt.preferredOutputLocation = {};
-                const kv_names = sess.outputNames.filter(n => n.includes('decoder') || n.includes('hidden_state'));
-                kv_names.forEach(name => {
-                    opt.preferredOutputLocation[`${name}`] = "gpu-buffer";
-                });
-            }
-
-            if (config.profiler) {
-                opt.enableProfiling = true;
-                if (config.provider == "webgpu") {
-                    ort.env.webgpu.profilingMode = 'default';
-                }
-                // opt.optimizedModelFilePath = 'opt.onnx';
-            }
-
-            // opt.freeDimensionOverrides = {batch_size: 1}
+            // opt.optimizedModelFilePath = 'opt.onnx';
+            // opt.getGraphOptimzationLevel = "disable";
 
             log(`loading... ${config.name},  ${config.provider}`);
             const model_bytes = await fetchAndCache("models/" + config.model);
+            log(`model size ${Math.round(model_bytes.byteLength / 1024 / 1024)} MB`);
+
             const load_start = performance.now();
             var sess = await ort.InferenceSession.create(model_bytes, opt);
             const load_stop = performance.now();
             const feed = make_inputs(config.gen, sess.inputNames, config);
+            const durations = [];
 
             if (config.provider == "webgpu" && config.io_binding) {
-                await apply_io_binding(sess, opt, feed);
-                sess = undefined;
+                apply_io_binding(sess, opt, feed);
+                sess.release();
                 sess = await ort.InferenceSession.create(model_bytes, opt);
             }
 
             if (config.profiler) {
                 log("profiling...");
                 for (var i = 0; i < 10; i++) {
+                    const start = performance.now();
                     const outputs = await sess.run(clone(feed));
+                    durations.push(performance.now() - start);
+                    if (i == 0 && feed["use_cache_branch"] !== undefined) {
+                        log(`using use_cache_branch, setting to 1`);
+                        copy_kv_caches(feed, outputs)
+                        feed['use_cache_branch'] = new ort.Tensor("bool", [true], [1]);
+                    }
                     if (config.io_binding) {
                         copy_kv_caches(feed, outputs);
                     }
                 }
                 await sess.endProfiling();
                 log("profiling done @@1.");
+                const r = logPercentiles(config, durations);
+                const result = `${r.name}/${r.provider}/${r.threads} avg: ${r.avg}, min: ${r.min}, max: ${r.max}, p50: ${r.p50}, p95: ${r.p95}, p99: ${r.p99}, count=${r.count}`;
+                log(result + " @@1");
+
+                if (config.download) {
+                    create_download_link(cons_out);
+                }
                 return;
             }
 
@@ -741,8 +716,14 @@
                 let outputs = await sess.run(clone(feed));
                 fist_run = performance.now() - start;
                 log(`1st run took ${fist_run.toFixed(2)}ms`);
+                await sleep(200);
                 if (config.verbose) {
                     console.log(outputs);
+                }
+                if (feed["use_cache_branch"] !== undefined) {
+                    log(`using use_cache_branch, setting to 1`);
+                    copy_kv_caches(feed, outputs)
+                    feed['use_cache_branch'] = new ort.Tensor("bool", [true], [1]);
                 }
                 for (var i = 0; i < 4; i++) {
                     outputs = await sess.run(clone(feed));
@@ -753,7 +734,6 @@
             }
 
             log("running...");
-            const durations = [];
             progress.parentNode.style.display = "block";
             await sleep(200);
             const end_time = performance.now() + config.min_query_time;
@@ -790,6 +770,7 @@
             const result = `${r.name}/${r.provider}/${r.threads} avg: ${r.avg}, min: ${r.min}, max: ${r.max}, p50: ${r.p50}, p95: ${r.p95}, p99: ${r.p99}, count=${r.count}`;
             log(result + " @@1");
             document.getElementById('results').innerText += result + "\n";
+            sess.release();
         } catch (e) {
             log(`${config.name} ${e} @@1`);
             console.log(e);
@@ -800,9 +781,13 @@
                 await sess.endProfiling();
             }
         }
+        if (config.download) {
+            create_download_link(cons_out);
+        }
         progress.parentNode.style.display = "none";
         progress.style.width = "0%";
     }
+
     if (config.go) {
         bench();
     }

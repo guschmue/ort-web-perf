@@ -22,7 +22,9 @@ def get_args():
 def process_file(fname, fp, pfp):
     exp1 = r"^.*LOG: '(\{.*)'}\",.*$"
     exp2 = r"^.*(\{\"cat.*\},).*$"
-    exp3 = r"^.*kernel\s\"\d+\|\[(\w+)\]\s([/\.\w]+)\"\sexecution\stime:\s(\d+).*$"
+    # exp3 = r"^.*kernel\s\"\d+\|\[(\w+)\]\s([/\.\w]+)\"\sexecution\stime:\s(\d+).*$"
+    exp3 = r"^.*kernel\s\"\d+\|\[(\w+)\]\s([/\.\w]+)\"\s.*,\sexecution\stime:\s(\d+).*$"
+    # [profiling] kernel "92210584|[Mul] /Mul_16" input[0]: [] | float32, input[1]: [1,4] | float32, output[0]: [1,4] | float32, execution time: 18560 ns
     fp.write("[\n")
     pfp.write("[\n")
     with open(fname, "r") as f:
@@ -39,7 +41,7 @@ def process_file(fname, fp, pfp):
             m = re.match(exp3, line)
             if m:
                 pfp.write(f"{{\"op\": \"{m.group(1)}\", \"name\": \"{m.group(2)}\", \"time\": {float(m.group(3)) / 1000.}}},\n")
-    fp.write("]\n")
+    fp.write("{}]\n")
     pfp.write("{\"op\": \"0\", \"name\": \"0\", \"time\": 0}\n]\n")
 
 
