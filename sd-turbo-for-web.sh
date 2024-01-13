@@ -1,6 +1,6 @@
 
 #
-# script to create a stable diffusion turbo model onnx model that is good for ort-web
+# script to create a stable diffusion turbo onnx model that is good for ort-web
 # before running, change root to your needs and 
 # pip install -U transformers diffusers optimum onnxruntime
 #
@@ -17,6 +17,9 @@ if [ ! -d $model ] ; then
 fi
 if [ ! -d $model_fp16 ] ; then
   optimum-cli export onnx --fp16 --device cuda -m $org $model_fp16
+  python onnx/onnx-wrap-fp16.py --input $model_fp16/unet/model.onnx --output  $model_fp16/unet/model.onnx
+  python onnx/onnx-wrap-fp16.py --input $model_fp16/vae_decoder/model.onnx --output  $model_fp16/vae_decoder/model.onnx
+  python onnx/onnx-wrap-fp16.py --input $model_fp16/text_encoder/model.onnx --output  $model_fp16/text_encoder/model.onnx
 fi
 
 # [--inspect] [--disable_attention] [--disable_skip_layer_norm] [--disable_embed_layer_norm] [--disable_bias_skip_layer_norm] [--disable_bias_gelu] 
