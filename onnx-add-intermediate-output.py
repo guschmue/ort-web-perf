@@ -10,6 +10,7 @@ def get_args():
     parser.add_argument("--name", default="", help='node name to add to output')
     parser.add_argument("--purge", action='store_true', help="remove original outputs")
     parser.add_argument("--all", action='store_true', help="add all nodes as output")
+    # parser.add_argument("--stopat", default="", help='stop when seeing this pattern')
     # parser.add_argument("--unused_nodes", action='store_true', help="remove unused nodes")
     # parser.add_argument("--unused_const", action='store_true', help="remove unused initializers")
     parser.add_argument("--count", type=int, default=0, help='number of ops to take')
@@ -26,6 +27,9 @@ def add_output(model, output_name):
     print(f"add output {output_name}")
 
 
+EXCLUDE = ["Squeeze", "Reshape", "Unsqueeze", "Shape", "Cast", "Slice"]
+
+
 def main():
     args = get_args()
 
@@ -36,6 +40,8 @@ def main():
 
     for i in model.graph.node:
         if i.op_type in args.op or i.name in args.name or args.all:
+            if i.op_type in EXCLUDE:
+                continue
             add_output(model, i.output[0])
             taken += 1
             if args.count > 0 and taken >= args.count:
