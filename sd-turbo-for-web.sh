@@ -17,9 +17,10 @@ if [ ! -d $model ] ; then
 fi
 if [ ! -d $model_fp16 ] ; then
   optimum-cli export onnx --fp16 --device cuda -m $org $model_fp16
-  python onnx/onnx-wrap-fp16.py --input $model_fp16/unet/model.onnx --output  $model_fp16/unet/model.onnx
-  python onnx/onnx-wrap-fp16.py --input $model_fp16/vae_decoder/model.onnx --output  $model_fp16/vae_decoder/model.onnx
-  python onnx/onnx-wrap-fp16.py --input $model_fp16/text_encoder/model.onnx --output  $model_fp16/text_encoder/model.onnx
+  python onnx-wrap-fp16.py --input $model_fp16/unet/model.onnx --output  $model_fp16/unet/model.onnx
+  python onnx-wrap-fp16.py --input $model_fp16/vae_decoder/model.onnx --output  $model_fp16/vae_decoder/model.onnx
+  python onnx-remove-double.py --input $model_fp16/text_encoder/model.onnx --output  $model_fp16/text_encoder/model.onnx
+  python onnx-wrap-fp16.py --input $model_fp16/text_encoder/model.onnx --output  $model_fp16/text_encoder/model.onnx
 fi
 
 # [--inspect] [--disable_attention] [--disable_skip_layer_norm] [--disable_embed_layer_norm] [--disable_bias_skip_layer_norm] [--disable_bias_gelu] 
