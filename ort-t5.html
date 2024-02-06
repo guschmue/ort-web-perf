@@ -123,9 +123,15 @@
     redirect_log();
   }
 
-  function post_process(tokenizer, output, output_ids) {
-    let logits = output.logits.data.slice(null, -1, null)
-    let argmax = max(logits)[1];
+  async function post_process(tokenizer, output, output_ids) {
+    let logits;
+    if (config.io_binding && config.provider == "webgpu") {
+      logits = await output.logits.getData();
+    } else {
+      logits = output.logits.data.slice(null, -1, null)
+    }
+
+    const argmax = max(logits)[1];
     output_ids.push(argmax);
     const txt = tokenizer.decode_single(output_ids, { skip_special_tokens: true });
     log(txt);
@@ -201,7 +207,7 @@
         dopt.logVerbosityLevel = 0;
       }
 
-      if (config.io_binding) {
+      if (config.io_binding && config.provider == "webgpu") {
         eopt.preferredOutputLocation = {'last_hidden_state': "gpu-buffer"};
       }
 
@@ -212,7 +218,7 @@
         kv_names.forEach(name => {
           dopt.preferredOutputLocation[`present${name}`] = "gpu-buffer";
         });
-        dopt.preferredOutputLocation['last_hidden_state'] = "gpu-buffer";
+        dopt.preferredOutputLocation['logits'] = "gpu-buffer";
       }
 
       if (config.profiler) {
@@ -265,7 +271,7 @@
         let output = await decoder.run(dfeed);
         const stop = performance.now();
         timeing.push(stop - start);
-        last_token = post_process(tokenizer, output, output_ids);
+        last_token = await post_process(tokenizer, output, output_ids);
         copy_kv_cache(dfeed, output);
         seqlen++;
       } while (last_token != 1n);
