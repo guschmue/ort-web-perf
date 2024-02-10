@@ -562,6 +562,22 @@
             feed['use_cache_branch'] = new ort.Tensor("bool", [false], [1]);
             return feed;
         }
+		if (gen == "NbitMatMul") {
+		feed['X'] = fillTensor([512, 512], "float32", 0);
+		return feed;
+		}
+		if (gen == "phi2") {
+            const tokens = [24446n, 502n, 546n, 262n, 46371n, 286n, 257n, 2588n, 392n, 7496n];
+            feed['input_ids'] = new ort.Tensor(new BigInt64Array(tokens), [1, tokens.length]);
+            feed['attention_mask'] = fillTensor([1, 1], "int64", 1n);
+            feed['position_ids'] = fillTensor([1, tokens.length], "int64", 1n);
+            const decoder_shape = [1, 32, 0, 80];
+            for (var i = 0; i < 32; i++) {
+                feed['past_key_values.' + i + '.key'] = fillTensor(decoder_shape, 'float16', 1);
+                feed['past_key_values.' + i + '.value'] = fillTensor(decoder_shape, 'float16', 1);
+            }
+            return feed;
+        }
         throw new Error(`unknown gendata ${gen}`);
     }
 

@@ -1,6 +1,6 @@
 
 const models = [
-    { n: "mobilenet-v2", g: "img224", m: "mobilenet_v2/model-12.onnx" },
+    { n: "mobilenet-v2", g: "img224", m: "mobilenetv2-12/mobilenetv2-12.onnx" },
     { e: "fp16", n: "mobilenet-v2-fp16", g: "img224-fp16", m: "mobilenet_v2/model-12-fp16.onnx" },
     { n: "albert-base-v2", g: "bert64", m: "tjs/albert-base-v2/onnx/model.onnx" },
     { n: "bert-base-uncased", g: "bert64", m: "tjs/bert-base-uncased/onnx/model.onnx" },
@@ -12,9 +12,26 @@ const models = [
     { n: "t5-decoder-seq1", g: "t5-decoder", m: "tjs/t5-small/onnx/decoder_model_merged.onnx", o: "&seqlen=1" },
     { n: "t5-decoder-iob-seq1", g: "t5-decoder", m: "tjs/t5-small/onnx/decoder_model_merged.onnx", o: "&seqlen=1&io_binding=1" },
     { n: "t5-v1.1-encoder", g: "t5-encoder", m: "tjs/google/t5-v1_1-small/onnx/encoder_model.onnx" },
-    { n: "t5-v1.1-decoder-seq1", g: "flan-t5-decoder", m: "tjs/google/t5-v1_1-small/onnx/decoder_model_merged.onnx", o: "&seqlen=1" },
+    { n: "swin2SR-lightweight-x2-64", g: "swin2SR-lightweight-x2-64", m: "swin2SR-lightweight-x2-64/model.onnx" },
+    { 
+        n: "superb/wav2vec2-base-superb-ks",
+        g: "superb/wav2vec2-base-superb-ks",
+        m: "superb/wav2vec2-base-superb-ks/onnx/model.onnx"
+     },
+
+    { 
+        n: "t5-v1.1-decoder-seq1",
+        g: "flan-t5-decoder",
+        m: "tjs/google/t5-v1_1-small/onnx/decoder_model_merged.onnx",
+        o: "&seqlen=1"
+     },
     { n: "flan-t5-encoder", g: "t5-encoder", m: "tjs/google/flan-t5-small/onnx/encoder_model.onnx" },
-    { n: "flan-t5-decoder-seq1", g: "flan-t5-decoder", m: "tjs/google/flan-t5-small/onnx/decoder_model_merged.onnx", o: "&seqlen=1" },
+    { 
+        n: "flan-t5-decoder-seq1",
+        g: "flan-t5-decoder",
+        m: "tjs/google/flan-t5-small/onnx/decoder_model_merged.onnx",
+        o: "&seqlen=1"
+     },
 
     { n: "gpt-neo-125m-seq1", g: "llm-decoder", m: "tjs/EleutherAI/gpt-neo-125M/onnx/decoder_model_merged.onnx", o: "&seqlen=1" },
     { n: "distilgpt2-seq1", g: "llm-decoder", m: "tjs/distilgpt2/onnx/decoder_model_merged.onnx", o: "&seqlen=1" },
@@ -36,11 +53,31 @@ const models = [
     { n: "sam-h-decoder-static", g: "sam-decoder", m: "sam/segment-anything-vit-h-static-shapes-static.onnx" },
     { n: "sam-mobile-encoder", g: "sam-mobile-encoder", m: "sam/mobile_sam-encoder.onnx" },
     { n: "bart-large-encoder", g: "bert64", m: "tjs/facebook/bart-large-cnn/onnx/encoder_model.onnx" },
-    { n: "distilbert-base-uncased-mnli", g: "bert64", m: "tjs/distilbert-base-uncased-mnli/onnx/model.onnx", o: "&seqlen=50" },
+    { 
+        n: "distilbert-base-uncased-mnli",
+        g: "bert64",
+        m: "tjs/distilbert-base-uncased-mnli/onnx/model.onnx",
+        o: "&seqlen=50"
+     },
     { n: "distilbart-cnn-6-6-encoder", g: "bert64", m: "tjs/distilbart-cnn-6-6/onnx/encoder_model.onnx", o: "&seqlen=168" },
-    { n: "distilbart-cnn-6-6-decoder", g: "bart-cnn", m: "tjs/distilbart-cnn-6-6/onnx/decoder_model_merged.onnx", o: "&seqlen=168&min_query_count=5" },
-    { n: "vit-gpt2-image-captioning-encoder", g: "img224", m: "tjs/vit-gpt2-image-captioning/onnx/encoder_model.onnx", o: "&seqlen=168" },
-    { n: "vit-gpt2-image-captioning-decoder", g: "bart-large-12", m: "tjs/vit-gpt2-image-captioning/onnx/decoder_model_merged.onnx", o: "&seqlen=168" },
+    { 
+        n: "distilbart-cnn-6-6-decoder",
+        g: "bart-cnn",
+        m: "tjs/distilbart-cnn-6-6/onnx/decoder_model_merged.onnx",
+        o: "&seqlen=168"
+     },
+    { 
+        n: "vit-gpt2-image-captioning-encoder",
+        g: "img224",
+        m: "tjs/vit-gpt2-image-captioning/onnx/encoder_model.onnx",
+        o: "&seqlen=168"
+     },
+    { 
+        n: "vit-gpt2-image-captioning-decoder",
+        g: "bart-large-12",
+        m: "tjs/vit-gpt2-image-captioning/onnx/decoder_model_merged.onnx",
+        o: "&seqlen=168"
+     },
     { n: "yolo-small", g: "img640x480", m: "tjs/hustvl/yolos-small/onnx/model.onnx" },
     { n: "detr-resnet-50", g: "detr", m: "tjs/facebook/detr-resnet-50/onnx/model.onnx" },
     { n: "detr-resnet-50-fp16", g: "detr", m: "tjs/facebook/detr-resnet-50/onnx/model-fp16.onnx" },
@@ -84,18 +121,115 @@ const models = [
     { n: "sd-turbo-unet-opt", g: "sd-turbo-unet", m: "sd-opt/unet/model.onnx", nowasm: true  },
     { n: "sd-turbo-vae-opt", g: "sd-turbo-vae", m: "sd-opt/vae_decoder/model.onnx", nowasm: true },
 
+    { n: "segformer", g: "img640x640", m: "partya/SegFormer/segformer-b5-finetuned-ade-640-640.onnx" },
+    { 
+        n: "Xenova/vitmatte-small-distinctions-646",
+        g: "img640x640",
+        m: "tjs/Xenova/vitmatte-small-distinctions-646/onnx/model.onnx",
+	device: "cpu"
+     },
+ { 
+        n: "Xenova/TinyLlama-1.1B-Chat-v1.0",
+        g: "img640x640",
+        m: "tjs/Xenova/TinyLlama-1.1B-Chat-v1.0/onnx/quantized_model.onnx"
+     },
+    { p: "wasm", n: "NbitMatMul", g: "NbitMatMul", m: "nbitmatmul/model-int4-combined.onnx" },
     { n: "-", g: "-", m: "p-" },
     { n: "-", g: "-", m: "p-" },
     { n: "-", g: "-", m: "p-" },
 
     // need to test
     { e: "new", n: "mms-tts-eng", g: "bert64", m: "tjs/mms-tts-eng/onnx/model.onnx" },
+    // transformers.js demo example
+    { e: "tjs-demo", n: "t5-encoder", g: "t5-encoder", m: "tjs/t5-small/onnx/encoder_model.onnx", o: "&seqlen=128" },
+    { 
+        e: "tjs-demo",
+        n: "t5-decoder-seq1",
+        g: "t5-decoder",
+        m: "tjs/t5-small/onnx/decoder_model_merged.onnx",
+        o: "&seqlen=1&enc_seqlen=128"
+     },
+    { 
+        e: "tjs-demo",
+        n: "distilgpt2",
+        g: "llm-decoder",
+        m: "tjs/distilgpt2/onnx/decoder_model_merged.onnx",
+        o: "&seqlen=16"
+     },
+    { e: "tjs-demo", n: "bert-base-cased", g: "bert64", m: "tjs/bert-base-cased/onnx/model.onnx", o: "&seqlen=9" },
+    { 
+        e: "tjs-demo",
+        n: "bert-base-sentiment",
+        g: "bert64",
+        m: "tjs/bert-base-multilingual-uncased-sentiment/onnx/model.onnx",
+        o: "&seqlen=63"
+     },
+    { 
+        e: "tjs-demo",
+        n: "distilbert-base-uncased-mnli",
+        g: "bert64",
+        m: "tjs/distilbert-base-uncased-mnli/onnx/model.onnx",
+        o: "&seqlen=50"
+     },
+    { 
+        e: "tjs-demo",
+        n: "distilbert-distilled-squad",
+        g: "bert64",
+        m: "tjs/distilbert-base-cased-distilled-squad/onnx/model.onnx",
+        o: "&seqlen=262"
+     },
+    { 
+        e: "tjs-demo",
+        n: "distilbart-cnn-6-6-encoder",
+        g: "bert64",
+        m: "tjs/distilbart-cnn-6-6/onnx/encoder_model.onnx",
+        o: "&seqlen=168"
+     },
+    { 
+        e: "tjs-demo",
+        n: "distilbart-cnn-6-6-decoder",
+        g: "bart-cnn",
+        m: "tjs/distilbart-cnn-6-6/onnx/decoder_model_merged.onnx",
+        o: "&seqlen=168"
+     },
+    { 
+        e: "tjs-demo",
+        n: "whisper-decoder-seq1",
+        g: "whisper-decoder",
+        m: "tjs/openai/whisper-tiny/onnx/decoder_model_merged.onnx",
+        o: "&seqlen=1"
+     },
+    { e: "tjs-demo", n: "whisper-encoder", g: "whisper-encoder", m: "tjs/openai/whisper-tiny/onnx/encoder_model.onnx" },
+    { 
+        e: "tjs-demo",
+        n: "vit-gpt2-image-captioning-encoder",
+        g: "img224",
+        m: "tjs/vit-gpt2-image-captioning/onnx/encoder_model.onnx",
+        o: "&seqlen=168"
+     },
+    { 
+        e: "tjs-demo",
+        n: "vit-gpt2-image-captioning-decoder",
+        g: "bart-large-12",
+        m: "tjs/vit-gpt2-image-captioning/onnx/decoder_model_merged.onnx",
+        o: "&seqlen=168"
+     },
+    { e: "tjs-demo", n: "vit-base-patch16-224", g: "img224", m: "tjs/google/vit-base-patch16-224/onnx/model.onnx" },
+    { e: "tjs-demo", n: "clip-vit-base-patch16", g: "clip", m: "tjs/openai/clip-vit-base-patch16/onnx/model.onnx" },
+    { e: "tjs-demo", n: "detr-resnet-50", g: "detr", m: "tjs/facebook/detr-resnet-50/onnx/model.onnx" },
 
     // stable-diffusion
     { e: "sd", n: "sd-unet-fp16", g: "sd-unet", m: "sd-fp16/unet/model.onnx" },
     { e: "sd", n: "sd-vae-fp16", g: "sd-vae", m: "sd-fp16/vae_decoder/model.onnx" },
     { e: "sd", n: "lcm-vae", g: "sd-vae-fp32", m: "lcm/vae_decoder/model.onnx" },
     { e: "sd", n: "lcm-unet", g: "sd-unet-fp32", m: "lcm/unet/model.onnx" },
+    { 
+        e: "sd",
+        n: "sd-win-unet-fp16",
+        g: "sd-unet",
+        m: "sd-win/Stable-Diffusion-v1.5-unet-fixed-size-batch-1-float16-no-shape-ops-embedded-weights.onnx"
+     },
+    { e: "sd", n: "sd-win-vae-fp16", g: "sd-vae", m: "sd-win/sd2.1-inpainting-vae-decoder-float16-zeroed-weights.onnx" },
 
     // ----------- not working -----------
 
@@ -111,14 +245,29 @@ const models = [
     { e: "error", n: "mobilevit", g: "mobilevit", m: "tjs/apple/mobilevit-small/onnx/model.onnx" },
 
     // matmul fails
-    { e: "error", n: "tiny_starcoder_py", g: "starcoder", m: "tjs/bigcode/tiny_starcoder_py/onnx/decoder_model_merged.onnx" },
+    { 
+        e: "error",
+        n: "tiny_starcoder_py",
+        g: "starcoder",
+        m: "tjs/bigcode/tiny_starcoder_py/onnx/decoder_model_merged.onnx"
+     },
 
     // decoder: Gather" failed. Error: Error: no GPU data for input: 1238119040
-    { e: "error", n: "bart-large-decoder", g: "bart-large", m: "tjs/facebook/bart-large-cnn/onnx/decoder_model_merged.ort" },
+    { 
+        e: "error",
+        n: "bart-large-decoder",
+        g: "bart-large",
+        m: "tjs/facebook/bart-large-cnn/onnx/decoder_model_merged.ort"
+     },
     { e: "error", n: "bart-large-cnn", g: "bart-large", m: "tjs/facebook/bart-large-cnn/onnx/decoder_model_merged.ort" },
 
     // OOM
-    { e: "error", n: "codegen-350M-mono", g: "llm-decoder", m: "tjs/Salesforce/codegen-350M-mono/onnx/decoder_model_merged.ort" },
+    { 
+        e: "error",
+        n: "codegen-350M-mono",
+        g: "llm-decoder",
+        m: "tjs/Salesforce/codegen-350M-mono/onnx/decoder_model_merged.ort"
+     },
 
     // Gather fails
     { e: "error", n: "xlm-roberta-base", g: "bert64", m: "tjs/xlm-roberta-base/onnx/model.ort" },
@@ -126,4 +275,4 @@ const models = [
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = { models };
-}
+ }
