@@ -133,6 +133,16 @@ const models = [
         g: "img640x640",
         m: "tjs/Xenova/TinyLlama-1.1B-Chat-v1.0/onnx/quantized_model.onnx"
      },
+     {
+        n: "Xenova/slimsam-77-uniform-decoder",
+        g: "slimsam-decoder",
+        m: "slimsam-77-uniform/onnx/prompt_encoder_mask_decoder.onnx"
+     },
+     { 
+        n: "phi2-int4",
+        g: "phi2",
+        m: "tjs/phi2-int4/onnx/decoder_model_merged.onnx"
+     },
     { p: "wasm", n: "NbitMatMul", g: "NbitMatMul", m: "nbitmatmul/model-int4-combined.onnx" },
     { n: "-", g: "-", m: "p-" },
     { n: "-", g: "-", m: "p-" },
