@@ -578,6 +578,13 @@
             }
             return feed;
         }
+        if (gen == "slimsam-decoder") {
+            feed["image_embeddings"] = fillTensor([1, 256, 64, 64], "float32", 0.5);
+            feed["image_positional_embeddings"] = fillTensor([1, 256, 64, 64], "float32", 0.5);
+            feed["input_labels"] = new ort.Tensor(new BigInt64Array([1n]), [1, 1, 1]);
+            feed["input_points"] = new ort.Tensor(new Float32Array([400., 500.]), [1, 1, 1, 2]);;
+            return feed;
+        }
         throw new Error(`unknown gendata ${gen}`);
     }
 
@@ -762,6 +769,7 @@
                         name: "webgpu",
                         preferredLayout: config.preferred_layout
                     }];
+                    opt.logLevel = "verbose";
                     if (config.profiler) {
                         ort.env.webgpu.profilingMode = 'default';
                     }
