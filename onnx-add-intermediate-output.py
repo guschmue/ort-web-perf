@@ -19,7 +19,6 @@ def get_args():
 
 
 def add_output(model, output_name, dtype):
-    #output = onnx.helper.make_tensor_value_info(output_name, onnx.TensorProto.FLOAT, (1,))
     output = onnx.helper.make_tensor_value_info(output_name, dtype, None)
     model.graph.output.extend([output])
     print(f"add output {output_name}")
@@ -36,41 +35,35 @@ def main():
     if args.name:
         pat = re.compile(args.name)
 
-    dtypes = {}
-    model_with_shapes = onnx.shape_inference.infer_shapes(model)
-    for i in model_with_shapes.graph.node:
-        if hasattr(i, "type") and hasattr(i.type, "elem_type"):
-            dtypes[i.name] = i.type.elem_type
-
     taken = 0
     if args.purge:
         model.graph.ClearField("output")
+
+    found = {i.name: 1 for i in model.graph.output}
 
     for i in model.graph.node:
         match = pat and pat.search(i.name)
         if i.op_type in args.op or match or args.all:
             if i.op_type in EXCLUDE:
                 continue
-            dtype = None
-            if hasattr(i, "type") and hasattr(i.type, "elem_type"):
-                dtype = i.type.elem_type
-            if not dtype:
-                dtype = dtypes.get(i.name)
-                if not dtype:
-                    # dtype = onnx.TensorProto.FLOAT
-                    dtype = onnx.TensorProto.UNDEFINED
             idx = 0
-            add_output(model, i.output[idx], dtype)
-            taken += 1
+            if i.output[idx] not in found:
+                add_output(model, i.output[idx], onnx.TensorProto.UNDEFINED)
+                taken += 1
             if args.count > 0 and taken >= args.count:
                 break
+
     print(f"{taken} taken")
+
     if args.output:
         model_with_shapes = onnx.shape_inference.infer_shapes(model)
-        if len(model_with_shapes.graph.output) > 0:
-            model.graph.ClearField("output")
-            for i in model_with_shapes.graph.output:
-                model.graph.output.add().CopyFrom(i)
+        types = {}
+        for i in model_with_shapes.graph.value_info:
+            types[i.name] = i.type.tensor_type.elem_type
+
+        for i in model.graph.output:
+            if i.type.tensor_type.elem_type == onnx.TensorProto.UNDEFINED:
+                i.type.tensor_type.elem_type = types[i.name]
         onnx.save(model, args.output, save_as_external_data=args.external_data)
         print(f"output in {args.output}")
 
