@@ -743,6 +743,8 @@
                         use_ort_model_bytes_directly: "1",
                         use_ort_model_bytes_for_initializers: "1",
                         disable_cpu_ep_fallback: config.prevent_fallback,
+                        log_severity_level: config.verbose,
+                        enableProfiling: config.profiler > 0,
                     }
                 },
                 freeDimensionOverrides: { batch_size: 1, },
