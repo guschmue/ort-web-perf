@@ -143,6 +143,11 @@ const models = [
         g: "phi2",
         m: "tjs/phi2-int4/onnx/decoder_model_merged.onnx"
      },
+     { 
+         n: "Xenova/yolov9-c",
+         g: "img640x640",
+         m: "tjs/Xenova/yolov9-c/onnx/model.onnx"
+     },
     { p: "wasm", n: "NbitMatMul", g: "NbitMatMul", m: "nbitmatmul/model-int4-combined.onnx" },
     { n: "-", g: "-", m: "p-" },
     { n: "-", g: "-", m: "p-" },
