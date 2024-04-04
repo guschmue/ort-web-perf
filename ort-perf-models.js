@@ -130,8 +130,13 @@ const models = [
      },
  { 
         n: "Xenova/TinyLlama-1.1B-Chat-v1.0",
-        g: "img640x640",
+        g: "llama",
         m: "tjs/Xenova/TinyLlama-1.1B-Chat-v1.0/onnx/quantized_model.onnx"
+     },
+     { 
+        n: "TinyLlama-1.1B-Chat-v1.0-int4",
+        g: "llama",
+        m: "tjs/TinyLlama-1.1B-Chat-v1.0-int4/onnx/decoder_model_merged.onnx"
      },
      {
         n: "Xenova/slimsam-77-uniform-decoder",
@@ -149,6 +154,7 @@ const models = [
          m: "tjs/Xenova/yolov9-c/onnx/model.onnx"
      },
     { p: "wasm", n: "NbitMatMul", g: "NbitMatMul", m: "nbitmatmul/model-int4-combined.onnx" },
+    { p: "wasm", n: "NBitMatMulFP16", g: "NbitMatMulFP16", m: "nbitmatmul_fp_quantize/model.onnx" },
     { n: "-", g: "-", m: "p-" },
     { n: "-", g: "-", m: "p-" },
     { n: "-", g: "-", m: "p-" },
