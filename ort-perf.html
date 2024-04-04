@@ -761,6 +761,7 @@
                         disable_cpu_ep_fallback: config.prevent_fallback,
                         log_severity_level: config.verbose,
                         enableProfiling: config.profiler > 0,
+                        graph_optimization_level: 99
                     }
                 },
                 // freeDimensionOverrides: { batch_size: 1, },
@@ -814,7 +815,7 @@
             }
 
             // opt.optimizedModelFilePath = 'opt.onnx';
-            // opt.graphOptimizationLevel = "disabled";
+            opt.graphOptimizationLevel = "disabled";
 
             log(`loading... ${config.name},  ${config.provider}`);
             const model_bytes = await fetchAndCache("models/" + config.model);
