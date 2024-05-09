@@ -11,7 +11,6 @@ def get_args():
     parser.add_argument("--output", help='output')
     parser.add_argument("--name", help='name')
     parser.add_argument("--external_data", action='store_true', help='use external data')
-
     args = parser.parse_args()
     return args
 
