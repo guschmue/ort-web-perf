@@ -562,8 +562,47 @@
             feed['use_cache_branch'] = new ort.Tensor("bool", [false], [1]);
             return feed;
         }
-        throw new Error(`unknown gendata ${gen}`);
-    }
+        if (gen == "NbitMatMul") {
+          feed['X'] = fillTensor([512, 512], "float32", 0);
+          return feed;
+        }
+        if (gen == "NbitMatMulFP16") {
+                feed['X'] = fillTensor([512, 512], "float16", 0);
+                return feed;
+        }
+      if (gen == "llama") {
+          const tokens = [24446n, 502n, 546n, 262n, 46371n, 286n, 257n, 2588n, 392n, 7496n];
+          feed['input_ids'] = new ort.Tensor(new BigInt64Array(tokens), [1, tokens.length]);
+          feed['attention_mask'] = fillTensor([1, 1], "int64", 1n);
+          feed['position_ids'] = fillTensor([1, tokens.length], "int64", 1n);
+          const decoder_shape = [1, 4, 0, 64];
+          for (var i = 0; i < 22; i++) {
+              feed['past_key_values.' + i + '.key'] = fillTensor(decoder_shape, 'float16', 1);
+              feed['past_key_values.' + i + '.value'] = fillTensor(decoder_shape, 'float16', 1);
+          }
+          return feed;
+      }
+      if (gen == "phi2") {
+          const tokens = [24446n, 502n, 546n, 262n, 46371n, 286n, 257n, 2588n, 392n, 7496n];
+          feed['input_ids'] = new ort.Tensor(new BigInt64Array(tokens), [1, tokens.length]);
+          feed['attention_mask'] = fillTensor([1, 1], "int64", 1n);
+          feed['position_ids'] = fillTensor([1, tokens.length], "int64", 1n);
+          const decoder_shape = [1, 32, 0, 80];
+          for (var i = 0; i < 32; i++) {
+              feed['past_key_values.' + i + '.key'] = fillTensor(decoder_shape, 'float16', 1);
+              feed['past_key_values.' + i + '.value'] = fillTensor(decoder_shape, 'float16', 1);
+          }
+          return feed;
+      }
+      if (gen == "slimsam-decoder") {
+          feed["image_embeddings"] = fillTensor([1, 256, 64, 64], "float32", 0.5);
+          feed["image_positional_embeddings"] = fillTensor([1, 256, 64, 64], "float32", 0.5);
+          feed["input_labels"] = new ort.Tensor(new BigInt64Array([1n]), [1, 1, 1]);
+          feed["input_points"] = new ort.Tensor(new Float32Array([400., 500.]), [1, 1, 1, 2]);;
+          return feed;
+      }
+      throw new Error(`unknown gendata ${gen}`);
+  }
 
     function create_download_link(cons_cout) {
         let link = document.getElementById('download').childNodes[0];
@@ -720,9 +759,12 @@
                         use_ort_model_bytes_directly: "1",
                         use_ort_model_bytes_for_initializers: "1",
                         disable_cpu_ep_fallback: config.prevent_fallback,
+                        log_severity_level: config.verbose,
+                        enableProfiling: config.profiler > 0,
+                        graph_optimization_level: 99
                     }
                 },
-                freeDimensionOverrides: { batch_size: 1, },
+                // freeDimensionOverrides: { batch_size: 1, },
             };
 
             if (config.verbose) {
@@ -746,6 +788,7 @@
                         name: "webgpu",
                         preferredLayout: config.preferred_layout
                     }];
+                    opt.logLevel = "verbose";
                     if (config.profiler) {
                         ort.env.webgpu.profilingMode = 'default';
                     }
@@ -772,7 +815,7 @@
             }
 
             // opt.optimizedModelFilePath = 'opt.onnx';
-            // opt.graphOptimizationLevel = "disabled";
+            opt.graphOptimizationLevel = "disabled";
 
             log(`loading... ${config.name},  ${config.provider}`);
             const model_bytes = await fetchAndCache("models/" + config.model);
