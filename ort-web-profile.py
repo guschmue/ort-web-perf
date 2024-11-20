@@ -22,9 +22,11 @@ def get_args():
 def process_file(fname, fp, pfp):
     exp1 = r"^.*LOG: '(\{.*)'}\",.*$"
     exp2 = r"^.*(\{\"cat.*\},).*$"
-    # exp3 = r"^.*kernel\s\"\d+\|\[(\w+)\]\s([/\.\w]+)\"\sexecution\stime:\s(\d+).*$"
-    exp3 = r"^.*kernel\s\"\d+\|\[(\w+)\]\s([/\.\w]+)\"\s.*,\sexecution\stime:\s(\d+).*$"
+    # exp3 = r"^.*kernel\s\"\d+\|\[(\w+)\]\s([/\.\w]+)\"\s.*,\sexecution\stime:\s(\d+).*$"
+    exp3 = r"^.*kernel\s\"\d+\|(\w+)\|([\/\.\w]+)\|\w+\".*,\sexecution\stime:\s(\d+).*$"
+    # [profiling] kernel "345558800|/decoder/block.0/layer.0/layer_norm/ReduceMean|ReduceMeanShared" input[0]: [1,1,512] | float32, output[0]: [1,1,1] | float32, execution time: 65536 ns
     # [profiling] kernel "92210584|[Mul] /Mul_16" input[0]: [] | float32, input[1]: [1,4] | float32, output[0]: [1,4] | float32, execution time: 18560 ns
+    # [profiling] kernel "282352968|Transpose|Transpose_token_272|Transpose" input[0]: [1,3,256,256] | float32, output[0]: [1,256,256,3] | float32, execution time: 115104 ns
     fp.write("[\n")
     pfp.write("[\n")
     with open(fname, "r") as f:
@@ -35,8 +37,9 @@ def process_file(fname, fp, pfp):
                 fp.write(m.group(1) + "\n")
             else:
                 m = re.match(exp2, line)
-                if m:
+                if m and "op_name" in m.group(1) and "kernel_time" in m.group(1):
                     fp.write(m.group(1) + "\n")
+
             # look for webgpu timestamps
             m = re.match(exp3, line)
             if m:
