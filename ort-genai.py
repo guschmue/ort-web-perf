@@ -2,14 +2,18 @@ import onnxruntime_genai as og
 import argparse
 import time
 import os
+import json
 
 MODELS = {
     "llama3.2-1b": {"name": "llama3.2-1B", "path": "tjs/Llama-3.2-1B-Instruct"},
     "llama3.2-1b-gqa": {"name": "llama3.2-1B-gqa", "path": "tjs/Llama-3.2-1B-Instruct-gqa"},
+    "llama3.2-1b-packed": {"name": "llama3.2-1B-packed", "path": "tjs/Llama-3.2-1B-Instruct-packed"},
     "llama3.2-3b": {"name": "llama3.2-3B", "path": "tjs/Llama-3.2-3B-Instruct"},
     "llama3.2-3b-gqa": {"name": "llama3.2-3B-gqa", "path": "tjs/Llama-3.2-3B-Instruct-gqa"},
+    "deepseek-r1": {"name": "deepseek-r1", "path": "tjs/DeepSeek-R1-Distill-Qwen-1.5B-onnx"},
     "phi3.5": {"name": "phi3.5", "path": "microsoft/Phi-3.5-mini-instruct-onnx-web"},
     "phi3.5-gqa": {"name": "phi3.5-gqa", "path": "microsoft/Phi-3.5-mini-instruct-gqa"},
+    "phi3.5-packed": {"name": "phi3.5-packed", "path": "microsoft/Phi-3.5-mini-instruct-packed"},
     "phi3.5-128": {"name": "phi3.5-128", "path": "microsoft/Phi-3.5-mini-instruct-128"},
     "phi3": {"name": "phi3", "path": "microsoft/Phi-3-mini-4k-instruct-onnx-web"},
     "phi3-dml": {"name": "phi3", "path": "microsoft/Phi-3-mini-4k-instruct-onnx-directml"},
@@ -88,16 +92,21 @@ TASK = {
     "lha": "Tell me about the lighthouse of alexandria with details.",
 }
 
+MAX_LEN = 2048
+
 
 def get_args():
     parser = argparse.ArgumentParser(description='tool')
     parser.add_argument('--model', required=True, choices=MODELS.keys(), help='model')
     parser.add_argument('--max_tokens', type=int, default=9999, help='max_tokens')
+    parser.add_argument('--max_prompt', type=int, default=10*1024, help='chunk prompt at max_prompt')
     parser.add_argument('--provider', default="cpu", choices=["cpu", "cuda", "webgpu", "dml"], help='provider')
-    parser.add_argument('--profile', action='store_true', help='profile')
+    parser.add_argument('--profile', help='profile')
     parser.add_argument('--verbose', action='store_true', help='verbose')
     parser.add_argument('--fp32', action='store_true', help='use fp32, fp16 is the default')
     parser.add_argument('--use-iob', action='store_true', help='use io-bindings')
+    parser.add_argument('--static', action='store_true', help='use static kv_cache')
+    parser.add_argument('--fa', action='store_true', help='use flash attention')
     parser.add_argument('--quiet', action='store_true', help='no output duing run')
     parser.add_argument('--csv', help='csv')
     parser.add_argument('--tag', default="main", help='tag')
@@ -119,8 +128,22 @@ def main():
     if not os.path.exists(model_path):
         model_path = model_path.replace("-onnx-web", "")
     print(model_path)
+    
+    # patch config file
+    config_path = os.path.join(model_path, "genai_config.json")
+    with open(config_path, "r", encoding='utf-8') as f:
+        config = json.load(f)
+    opt = {"enableFlashAttention": "1" if args.fa else "0"}
+    if args.provider == "webgpu":
+        config["model"]["decoder"]["session_options"]["provider_options"] = [{"webgpu": opt}]
+    if args.profile:
+        config["model"]["decoder"]["session_options"]["enable_profiling"] = args.profile
+    config["search"]["max_length"] = MAX_LEN
+    config["search"]["past_present_share_buffer"] = args.static
+    with open(config_path, "w", encoding='utf-8') as f:
+        json.dump(config, f, indent=4)
+
     model = og.Model(model_path)
-    # print(f"device_type={model.device_type}")
     tokenizer = og.Tokenizer(model)
     tokenizer_stream = tokenizer.create_stream()
     search_options = {name: getattr(args, name) for name in ['do_sample', 'max_length', 'min_length', 'top_p', 'top_k', 'temperature', 'repetition_penalty'] if name in args}
@@ -128,7 +151,7 @@ def main():
     # Set the max length to something sensible by default, unless it is specified by the user,
     # since otherwise it will be set to the entire context length
     if 'max_length' not in search_options:
-        search_options['max_length'] = 2048
+        search_options['max_length'] = MAX_LEN
 
     chat_template = '<|user|>\n{input} <|end|>\n<|assistant|>'
 
@@ -150,7 +173,11 @@ def main():
     first_token_time = 0
     start = time.time()
     generator = og.Generator(model, params)
-    generator.append_tokens(input_tokens)
+    pos = 0
+    while pos < len(input_tokens):
+        l = min(args.max_prompt, len(input_tokens) - pos)
+        generator.append_tokens(input_tokens[pos:pos + l])
+        pos += l
     try:
         while not generator.is_done():
             generator.generate_next_token()
@@ -170,6 +197,8 @@ def main():
     took = end_time - start
     prompt_time = first_token_time - start
     gen_time = end_time - first_token_time
+    if gen_time == 0:
+        gen_time = 1
     new_tokens_length = len(new_tokens)
     prompt_tokens = len(input_tokens)
     e2e_tps = new_tokens_length / took
@@ -181,7 +210,7 @@ def main():
     if args.csv:
         with open(args.csv, "a") as f:
             precision = "q4fp32" if args.fp32 else "q4fp16"
-            f.write("name,took,token_per_sec,tokens,input_tokens,prompt_token_per_sec,gen_token_per_sec,ttft,task,precision,tag,platform,provider,generator,filter,\n")
+            # f.write("name,took,token_per_sec,tokens,input_tokens,prompt_token_per_sec,gen_token_per_sec,ttft,task,precision,tag,platform,provider,generator,filter,\n")
             f.write(f"{args.model['name']},{took:.1f},{e2e_tps:.1f},{new_tokens_length},{prompt_tokens},{prompt_tps:.1f},{gen_tps:.1f},{prompt_time:.2f},{args.task},{precision},{args.tag},{args.platform},{args.provider},ort-genai.py,1\n")
 
 
