@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Example</title>
+</head>
+
+<body>
+    <script src="dist/ort.webgpu.min.js"> </script>
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@dev/dist/ort.webgpu.min.js"></script>
+    -->
+
+    <script type="module">
+
+        import { AutoTokenizer, env } from './node_modules/@huggingface/transformers/dist/transformers.js';
+        import { LLM } from './llm.js';
+
+        function log(i) { console.log(i); document.getElementById('status').innerText += `\n${i}`; }
+
+        const MODELS = {
+            "llama3.2-1b-cuda": { name: "llama3.2-1B-cuda", path: "llm/Llama-3.2-1B-Instruct-cuda", externaldata: true },
+            "llama3.2-1b-gqa": { name: "llama3.2-1B-gqa", path: "llm/Llama-3.2-1B-Instruct-gqa", externaldata: true },
+            "llama3.2-1b-mha": { name: "llama3.2-1B-mha", path: "llm/Llama-3.2-1B-Instruct-mha", externaldata: true },
+            "llama3.2-1b": { name: "llama3.2-1B", path: "llm/Llama-3.2-1B-Instruct", externaldata: true },
+            "llama3.2-3b": { name: "llama3.2-3B", path: "llm/Llama-3.2-3B-Instruct", externaldata: true },
+            "deepseek-r1": {name: "deepseek-r1", path: "llm/DeepSeek-R1-Distill-Qwen-1.5B", externaldata: true },
+            "phi3.5": { name: "phi3.5", path: "llm/Phi-3.5-mini-instruct", externaldata: true },
+            "phi4": { name: "phi4", path: "llm/Phi-4-mini-instruct", externaldata: true },
+            "phi4-mha": { name: "phi4", path: "llm/Phi-4-mini-instruct-mha", externaldata: true },
+            "gemma-2b": { name: "gemma-2b", path: "Xenova/gemma-2-2b-web", externaldata: true },
+            "tinyllama": { name: "tinyllama", path: "llm/TinyLlama-1.1B-Chat-v1.0", externaldata: true},
+            "qwen2.5-0.5b": {"name": "qwen2.5-0.5b", "path": "llm/Qwen2.5-0.5B-Instruct", externaldata: true},
+            "foo": {"name": "foo", "path": "tjs/foo", externaldata: true, fp32: 1},
+        }
+
+        const SUM = `Summarize:
+        Constantinople, now known as Istanbul in modern Turkey, was a historically significant city that served as the capital of both the Roman / Byzantine
+Empire and the Ottoman Empire.Its rich history spans over 2, 500 years, with its strategic location at the crossroads between Europe and Asia contributing
+to its prominence throughout various periods.The city was originally founded by Greek colonists from Megara as Byzantium around 657 BC.It became a
+significant center of trade due to its position on the Bosphorus, controlling passage between the Black Sea and the Mediterranean.However, it gained
+even greater importance after Emperor Constantine I(Constantinus) relocated his capital there in 324 AD, thus renaming it Constantinople.
+The Byzantine Empire developed into a major hub of Christian culture and religion, with Hagia Sophia being one of its most iconic structures
+built during the reign of Emperor Justinian I.The city flourished as an artistic and intellectual center until the 12th century when it faced
+significant challenges from various invaders, including Arabs, Bulgarians, Crusaders, and Venetians.
+            In 1453, Constantinople fell to the Ottoman Empire after a protracted siege led by Sultan Mehmed II.The city was renamed Istanbul as part of the empire's
+policy of Islamization, but it retained much of its Greek Byzantine culture and architecture under the new rule.Today, Istanbul is Turkey's largest city and
+an important cultural, economic, and transportation hub.The historical significance of Constantinople / Istanbul lies in its architectural landmarks
+        such as Hagia Sophia, The Hippodrome(now Sultanahmet Square), the Chora Church, and many more that showcase a blend of Byzantine, Roman, and Ottoman influences.
+`;
+
+        const SUM_LONG = `Summarize:
+As of now, **NVIDIA Nsight Graphics** does not natively support **WebGPU**, because WebGPU is a relatively new API designed to 
+offer more modern graphics capabilities directly from web browsers, whereas Nsight focuses primarily on low-level graphics APIs like Vulkan, Direct3D, and OpenGL. However, there are still ways to profile **WebGPU shaders**, either by using WebGPU-specific tools or by leveraging alternative strategies in conjunction with Nsight.
+### Here's how you can approach profiling WebGPU shaders:
+### 1. **Browser's Developer Tools**
+WebGPU runs inside web browsers, so the primary way to profile WebGPU shaders is through the browser's built-in developer tools.
+- **Google Chrome** (and other Chromium-based browsers) have a WebGPU implementation. The **Performance tab** can give some general insight into GPU workload and execution times.
+- However, this is not as detailed as using tools like Nsight for native APIs like Vulkan.
+You can follow these steps for basic profiling:
+   - Open **Chrome DevTools** (F12 or right-click and choose Inspect).
+   - Go to the **Performance** tab.
+   - Start recording while running your WebGPU workload.
+   - Stop the recording to analyze the GPU time and function calls.
+For **WebGPU shader debugging**, WebGPU currently doesn't provide as many sophisticated tools for low-level shader profiling as Vulkan or DirectX.
+### 2. **Emulate WebGPU with Vulkan and Use Nsight**
+To use **NVIDIA Nsight Graphics** or other advanced GPU profiling tools (which are generally more mature than WebGPU's current ecosystem), you can take an indirect approach:
+- **WGPU** is a popular Rust-based implementation of WebGPU, which can compile WebGPU code to Vulkan, Metal, or Direct3D 12.
+   - By targeting **Vulkan** in a WebGPU project (using WGPU), you can capture the Vulkan API traces in Nsight Graphics.
+   - This way, you can benefit from Nsight's advanced GPU profiling and shader analysis tools by profiling the Vulkan backend that your WebGPU project uses.
+   Steps:
+   1. Set up **WGPU** (or another WebGPU-to-Vulkan translation layer).
+   2. Run your WebGPU code, but have it target the Vulkan backend.
+   3. Open **NVIDIA Nsight Graphics** and capture a frame from the Vulkan-based WebGPU app.
+   4. Analyze shader execution times, memory usage, and other GPU performance metrics using Nsight's tools.
+This approach allows you to leverage Vulkan profiling tools on WebGPU projects indirectly.
+### 3. **Shader Profiling with Spirv-Cross**
+WebGPU shaders are written in **WGSL** or can be translated from HLSL/GLSL into SPIR-V using tools like **SPIRV-Cross**. If you're using SPIR-V shaders, Nsight Graphics can profile them once you've translated the WebGPU pipeline to Vulkan or other supported APIs.
+- **SPIR-V** shader code can be compiled using tools like **glslang** or **SPIRV-Tools** to ensure it's compatible with Vulkan.
+- Profiling SPIR-V shaders is supported by Nsight, so once you have your WebGPU shaders translated to SPIR-V, you can take advantage of Nsight's shader analysis capabilities.
+### 4. **Monitor GPU Performance via Chrome's Internals**
+Although Nsight Graphics doesn't support WebGPU directly, you can monitor GPU usage through **Chrome’s Task Manager** (Shift + Esc) to get rough insights into GPU memory usage and execution.
+Additionally, Chrome flags like --enable-gpu-benchmarking and --enable-webgpu might give you more low-level insight into how WebGPU commands are being dispatched.
+### 5. **Wait for WebGPU Toolchain Maturity**
+As WebGPU matures, tools specifically designed to profile and debug WebGPU shaders will become more common. For example, upcoming features in **Google Chrome DevTools** and other WebGPU-focused browser tools could make shader profiling easier and more accessible without relying on Vulkan backends.
+### Conclusion
+1. **Direct Nsight support for WebGPU** is currently not available.
+2. You can **use browser developer tools** (like Chrome's Performance tab) for high-level profiling.
+3. **Convert WebGPU to Vulkan** via **WGPU** or similar projects to profile using Nsight.
+4. Use **SPIR-V shaders** for more direct shader profiling via Nsight in Vulkan-based projects.
+While the tools for WebGPU shader profiling are not as mature as those for Vulkan or DirectX, the combination of browser tools and Vulkan translation layers can provide insights for performance tuning.
+`;
+
+        const TASK = {
+            "sum": SUM,
+            "sum_long": SUM_LONG,
+            "easy": "Tell me about Constantinople.",
+            "lha": "Tell me about the lighthouse of alexandria with details.",
+        }
+
+        function getConfig() {
+            const query = window.location.search.substring(1);
+            var config = {
+                model: "phi3",
+                provider: "webgpu",
+                profiler: 0,
+                verbose: 0,
+                threads: 1,
+                trace: 0,
+                csv: 0,
+                download: 0,
+                max_tokens: 9999,
+                local: 1,
+                values: 0,
+                quiet: 0,
+                fp32: 0,
+                values: 0,
+                task: "easy",
+            }
+            let vars = query.split("&");
+            for (var i = 0; i < vars.length; i++) {
+                let pair = vars[i].split("=");
+                if (pair[0] in config) {
+                    const key = pair[0];
+                    const value = decodeURIComponent(pair[1]);
+                    if (typeof config[key] == "number") {
+                        config[key] = parseInt(value);
+                    }
+                    else {
+                        config[key] = value;
+                    }
+                } else if (pair[0].length > 0) {
+                    throw new Error("unknown argument: " + pair[0]);
+                }
+            }
+            if (MODELS[config.model] !== undefined) {
+                config.model = MODELS[config.model];
+            } else {
+                log(`unknown model: ${config.model}`);
+                throw new Error("unknown model: " + config.model);
+            }
+            return config;
+        }
+
+        const config = getConfig();
+        const cons_log = [];
+
+        function redirect_output() {
+            console.log = function (message) {
+                try {
+                    if (!message.includes('_fence_')) {
+                        cons_log.push(message);
+                    }
+                } catch (error) {
+                }
+            };
+            console.error = console.log;
+        }
+
+        if (config.download || config.profiler === 2) {
+            redirect_output();
+        }
+
+        env.localModelPath = 'models';
+        env.allowRemoteModels = config.local == 0;
+        env.allowLocalModels = config.local == 1;
+        ort.env.wasm.numThreads = config.threads;
+        ort.env.wasm.simd = true;
+
+
+        const tokenizer = await AutoTokenizer.from_pretrained(config.model.path);
+
+        function create_download_link(cons_log) {
+            if (cons_log.length > 0) {
+                let link = document.getElementById('download').childNodes[0];
+                if (link === undefined) {
+                    link = document.createElement("a", "download-link");
+                    link.download = "profiler.log";
+                    link.innerText = "Download";
+                    document.getElementById('download').appendChild(link);
+                }
+                const base64 = btoa(cons_log.join('\n'));
+                link.href = `data:application/json;base64,${base64}`;
+            }
+        }
+
+
+        function token_to_text(tokenizer, tokens, startidx) {
+            const ids = tokens.slice(startidx);
+            if (ids.length < 1) {
+                return "";
+            }
+            const txt = tokenizer.decode(ids, { skip_special_tokens: true, });
+            return txt;
+        }
+
+        const llm = new LLM();
+
+        async function main() {
+
+            const model = config.model;
+
+            await llm.load(model, {
+                provider: config.provider,
+                verbose: config.verbose,
+                profiler: config.profiler,
+                trace: config.trace,
+                local: config.local,
+                hasFP16: config.fp32 == 0,
+            });
+
+            document.getElementById('status').innerText = "";
+            const query = TASK[config.task];
+            const message = [{ role: 'user', content: query }];
+            const prompt = tokenizer.apply_chat_template(message, {
+                    add_generation_prompt: true,
+                    return_dict: false,
+                    tokenize: false,
+                });
+            //}
+            const { input_ids } = await tokenizer(prompt, { return_tensor: false, padding: true, truncation: true });
+
+            // warmup
+            await llm.generate(input_ids, undefined, { max_tokens: 1, values: config.values, quiet: config.quiet, cons_log });
+            llm.initilize_feed();
+
+            // timed run
+            const start_timer = performance.now();
+            const [output_tokens, took, gen_time, prompt_time] = await llm.generate(input_ids, (output_tokens) => {
+                document.getElementById('result').innerText = token_to_text(tokenizer, output_tokens, input_ids.length);
+            }, { max_tokens: config.max_tokens, values: config.values, quiet: config.quiet, cons_log: cons_log });
+            // end timed
+
+            if (config.profiler) {
+                llm.sess.endProfiling();
+            }
+
+            const prompt_tokens = input_ids.length;
+            const new_tokens_length = output_tokens.length - prompt_tokens;
+            const e2e_tps = new_tokens_length / took;
+            const prompt_tps = prompt_tokens / prompt_time;
+            const gen_tps = new_tokens_length / gen_time;
+ 
+            const txt = token_to_text(tokenizer, output_tokens, input_ids.length);
+            const seqlen = output_tokens.length;
+            document.getElementById('result').innerText = txt;
+            const perf = `${new_tokens_length} tokens in ${took.toFixed(1)}sec, e2e: ${e2e_tps.toFixed(1)} tps, prompt_tps: ${prompt_tps.toFixed(1)} tps, gen_tps: ${gen_tps.toFixed(1)} tps, ttft: ${prompt_time.toFixed(2)} sec`;
+            console.log(perf + " @@1");
+            document.getElementById('perf').innerText = perf;
+            if (config.csv) {
+                const precision = "q4fp16";
+                const tag = "@@2";
+                const provider  = "jsep";
+                const platform  = "plat";
+                // "name,took,token_per_sec,tokens,input_tokens,prompt_token_per_sec,gen_token_per_sec,ttft,task,precision,tag,platform,provider,generator,filter
+                log(`${model.name},${took.toFixed(1)},${e2e_tps.toFixed(3)},${new_tokens_length},${prompt_tokens},${prompt_tps.toFixed(1)},${gen_tps.toFixed(1)},${prompt_time.toFixed(1)},${config.task},${precision},${tag},${platform},${provider},ort-llm.html,1`);
+            }
+        }
+        try {
+            await main();
+        } catch (error) {
+            console.error(error);
+            document.getElementById('result').innerText = error.message;
+        } finally {
+            create_download_link(cons_log);
+        }
+    </script>
+
+    <div id="status"></div>
+    <br />
+    <div id="result"></div>
+    <br />
+    <div id="perf"></div>
+    <br />
+    <div id="download"></div>
+    <br />
+
+</body>
+
+</html>
