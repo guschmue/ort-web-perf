@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ort-llm</title>
+</head>
+
+<body>
+    <!--
+    <script src="dist/ort.webgpu.min.js"> </script>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@dev/dist/ort.webgpu.min.js"></script>
+            "onnxruntime-web": "./node_modules/onnxruntime-web/dist/ort.bundle.min.mjs",
+    -->
+    <script type="importmap">
+        {
+          "imports": {
+            "@huggingface/transformers": "./node_modules/@huggingface/transformers/dist/transformers.web.js",
+            "onnxruntime-web": "./node_modules/onnxruntime-web/dist/ort.webgpu.mjs",
+            "onnxruntime-common": "./node_modules/onnxruntime-common/dist/esm/index.js"
+          }
+        }
+      </script>
+    <script type="module">
+        import * as ort from 'onnxruntime-web';
+        
+        import { AutoTokenizer, env } from './node_modules/@huggingface/transformers/dist/transformers.js';
+        import { LLM, fetchAndCache } from './llm.js';
+
+        function log(i) { console.log(i); document.getElementById('status').innerText += `\n${i}`; }
+
+        function getConfig() {
+            const query = window.location.search.substring(1);
+            var config = {
+                model: "qwen3-0.6b",
+                provider: "webgpu",
+                profiler: 0,
+                verbose: 0,
+                threads: 1,
+                trace: 0,
+                csv: 0,
+                download: 0,
+                max_tokens: 9999,
+                local: 1,
+                values: 0,
+                quiet: 0,
+                fp32: 0,
+                values: 0,
+                postfix: undefined,
+                task: "generation",
+                config: "ort-llm.json",
+            }
+            let vars = query.split("&");
+            for (var i = 0; i < vars.length; i++) {
+                let pair = vars[i].split("=");
+                if (pair[0] in config) {
+                    const key = pair[0];
+                    const value = decodeURIComponent(pair[1]);
+                    if (typeof config[key] == "number") {
+                        config[key] = parseInt(value);
+                    }
+                    else {
+                        config[key] = value;
+                    }
+                } else if (pair[0].length > 0) {
+                    throw new Error("unknown argument: " + pair[0]);
+                }
+            }
+            return config;
+        }
+
+        const config = getConfig();
+        const cons_log = [];
+
+        function redirect_output() {
+            console.log = function (message) {
+                try {
+                    if (!message.includes('_fence_')) {
+                        cons_log.push(message);
+                    }
+                } catch (error) {
+                }
+            };
+            console.error = console.log;
+        }
+
+        if (config.download || config.profiler === 2) {
+            redirect_output();
+        }
+
+        const json_bytes = await fetchAndCache(config.config);
+        let textDecoder = new TextDecoder();
+        const app_config = JSON.parse(textDecoder.decode(json_bytes));
+
+
+        env.localModelPath = '../models';
+        env.allowRemoteModels = config.local == 0;
+        env.allowLocalModels = config.local == 1;
+        ort.env.wasm.numThreads = config.threads;
+
+        if (app_config["models"][config.model] === undefined) {
+            log("model not found: " + config.model);
+            throw new Error("model not found: " + config.model);
+        }
+        let model_path = (config.local === 1) ? "../models/" + app_config["models"][config.model].path : app_config["models"][config.model].path;
+        const task = app_config["tasks"][config.task];
+        if (config.postfix !== undefined) {
+            model_path = model_path + "-" + config.postfix;
+        }
+
+
+        const tokenizer = await AutoTokenizer.from_pretrained(model_path);
+
+        function create_download_link(cons_log) {
+            if (cons_log.length > 0) {
+                let link = document.getElementById('download').childNodes[0];
+                if (link === undefined) {
+                    link = document.createElement("a", "download-link");
+                    link.download = "profiler.log";
+                    link.innerText = "Download";
+                    document.getElementById('download').appendChild(link);
+                }
+                const base64 = btoa(cons_log.join('\n'));
+                link.href = `data:application/json;base64,${base64}`;
+            }
+        }
+
+
+        function token_to_text(tokenizer, tokens, startidx) {
+            const ids = tokens.slice(startidx);
+            if (ids.length < 1) {
+                return "";
+            }
+            const txt = tokenizer.decode(ids, { skip_special_tokens: true, });
+            return txt;
+        }
+
+        const llm = new LLM();
+
+        async function main() {
+
+            await llm.load(model_path, {
+                provider: config.provider,
+                verbose: config.verbose,
+                profiler: config.profiler,
+                trace: config.trace,
+                local: config.local,
+                hasFP16: config.fp32 == 0,
+            });
+
+            document.getElementById('status').innerText = "";
+            const message = [{ role: 'user', content: task }];
+            const prompt = tokenizer.apply_chat_template(message, {
+                    add_generation_prompt: true,
+                    return_dict: false,
+                    tokenize: false,
+                });
+            //}
+            const { input_ids } = await tokenizer(prompt, { return_tensor: false, padding: true, truncation: true });
+
+            // warmup
+            await llm.generate(input_ids, undefined, { max_tokens: 1, values: config.values, quiet: config.quiet, cons_log });
+            llm.initilize_feed();
+
+            // timed run
+            const start_timer = performance.now();
+            const [output_tokens, took, gen_time, prompt_time] = await llm.generate(input_ids, (output_tokens) => {
+                document.getElementById('result').innerText = token_to_text(tokenizer, output_tokens, input_ids.length);
+            }, { max_tokens: config.max_tokens, values: config.values, quiet: config.quiet, cons_log: cons_log });
+            // end timed
+
+            if (config.profiler) {
+                llm.sess.endProfiling();
+            }
+
+            const prompt_tokens = input_ids.length;
+            const new_tokens_length = output_tokens.length - prompt_tokens;
+            const e2e_tps = new_tokens_length / took;
+            const prompt_tps = prompt_tokens / prompt_time;
+            const gen_tps = new_tokens_length / gen_time;
+ 
+            const txt = token_to_text(tokenizer, output_tokens, input_ids.length);
+            const seqlen = output_tokens.length;
+            document.getElementById('result').innerText = txt;
+            const perf = `${new_tokens_length} tokens in ${took.toFixed(1)}sec, e2e: ${e2e_tps.toFixed(1)} tps, prompt_tps: ${prompt_tps.toFixed(1)} tps, gen_tps: ${gen_tps.toFixed(1)} tps, ttft: ${prompt_time.toFixed(2)} sec`;
+            console.log(perf + " @@1");
+            document.getElementById('perf').innerText = perf;
+            if (config.csv) {
+                const precision = "q4fp16";
+                const tag = "@@2";
+                const provider  = "jsep";
+                const platform  = "plat";
+                // "name,took,token_per_sec,tokens,input_tokens,prompt_token_per_sec,gen_token_per_sec,ttft,task,precision,tag,platform,provider,generator,filter
+                log(`${config.model},${took.toFixed(1)},${e2e_tps.toFixed(3)},${new_tokens_length},${prompt_tokens},${prompt_tps.toFixed(1)},${gen_tps.toFixed(1)},${prompt_time.toFixed(1)},${config.task},${precision},${tag},${platform},${provider},ort-llm.html,1`);
+            }
+        }
+        try {
+            await main();
+        } catch (error) {
+            console.error(error);
+            document.getElementById('result').innerText = error.message;
+        } finally {
+            create_download_link(cons_log);
+        }
+    </script>
+
+    <div id="status"></div>
+    <br />
+    <div id="result"></div>
+    <br />
+    <div id="perf"></div>
+    <br />
+    <div id="download"></div>
+    <br />
+
+</body>
+
+</html>

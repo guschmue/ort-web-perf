@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@huggingface/transformers": "^3.5.1",
+    "@playwright/test": "^1.36.2",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0",
+    "jsdom": "^23.0.1",
+    "onnxruntime-web": "file:../../onnxruntime.native/js/web"
+  }
+}
