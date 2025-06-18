@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "onnxruntime-web": "file:../../onnxruntime.native/js/web",
+    "package.json": "^2.0.1",
+    "playright": "^0.0.22"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.36.2"
+  }
+}

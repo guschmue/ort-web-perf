@@ -1,0 +1,764 @@
+<html>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous" />
+
+<head>
+    <title>ort-perf</title>
+</head>
+<style>
+    .sidebar {
+        margin: 0;
+        padding: 1;
+        width: 200px;
+        background-color: #f1f1f1;
+        position: fixed;
+        height: 100%;
+        overflow: auto;
+        overflow-y: scroll;
+        scrollbar-width: 8px;
+    }
+
+    .sidebar a {
+        display: block;
+        color: black;
+        text-decoration: none;
+        overflow: hidden;
+    }
+
+    .sidebar a.active {
+        background-color: #04AA6D;
+        color: white;
+    }
+
+    .sidebar a:hover:not(.active) {
+        background-color: #555;
+        color: white;
+    }
+
+    .content {
+        margin-left: 220px;
+    }
+</style>
+
+<body>
+    <div class="containerx" style="padding-left: 10px;">
+        <h1>ort-perf</h1>
+        <div id="nav" class="sidebar d-grid gap-5 d-md-block">
+        </div>
+        <div class="content">
+            <div class="d-grid gap-5 d-md-block">
+                <button class="btn btn-primary" type="button" onclick="bench();">bench</button>
+            </div>
+            <div class="d-grid gap-5 d-md-block">
+                <div class="progress" style="width: 50%; margin-top: 10; display: none;">
+                    <div id="progress" class="progress-bar progress-bar-striped" role="progressbar" style="width: 10%"
+                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" sam></div>
+                </div>
+            </div>
+            <p class="text-lg-start">
+            <div id="results" style="font: 1em consolas;"></div>
+            </p>
+            <div id="download"></div>
+
+            <p class="text-lg-start">
+            <div id="status" style="font: 1em consolas;"></div>
+            </p>
+        </div>
+        <div style="display:none;">
+            <img id="dummy-img"></img>
+        </div>
+    </div>
+</body>
+<script type="importmap">
+    {
+      "imports": {
+        "onnxruntime-web": "./node_modules/onnxruntime-web/dist/ort.webgpu.mjs",
+        "onnxruntime-common": "./node_modules/onnxruntime-common/dist/esm/index.js"
+      }
+    }
+</script>
+
+<script type="module">
+    import * as ort from 'onnxruntime-web';
+    import make_inputs from "./ort-perf-gendata.js";
+
+    var models;
+
+    function populateNav(config) {
+        const nav = document.getElementById("nav");
+        // sort models by name
+        models.sort((a, b) => a.name.localeCompare(b.name));
+        for (let i = 0; i < models.length; i++) {
+            const model = models[i];
+            if (model.category === undefined) {
+                model.category = "default";
+            }
+            if (model.args === undefined) {
+                model.args = "";
+            }
+            if (model.category != config.filter) {
+                continue;
+            }
+            const a = document.createElement("a");
+            const ext = (model.categoryxt !== undefined) ? "&ext=" + model.categoryxt : "";
+            a.href = `?filter=${config.filter}&provider=${config.provider}&name=${model.name}&gen=${model.gen}&model=${model.path}${ext}${model.args}`;
+            a.innerText = model.name;
+            if (model.name == config.name) {
+                a.className = "active";
+            }
+            nav.appendChild(a);
+        }
+        for (var i=0; i< 5; i++) {
+            const a = document.createElement("a");
+            a.innerText = "#";
+            nav.appendChild(a);
+        }
+
+        if (config.model === undefined && config.name !== undefined) {
+            for (let i = 0; i < models.length; i++) {
+                const model = models[i];
+                if (model.name == config.name && model.category == config.filter) {
+                    config.model = model.path;
+                    config.gen = model.gen;
+                    break;
+                }
+            }
+            if (config.model === undefined) {
+                throw new Error(`${config.filter} / ${config.name} not defined`);
+            }
+        }
+    }
+
+    function log(i) {
+        console.log(i);
+        document.getElementById('status').innerText += `\n${i}`;
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function getConfig() {
+        const query = window.location.search.substring(1);
+        var config = {
+            model: undefined,
+            name: undefined,
+            filter: "default",
+            provider: "webgpu",
+            device: "gpu",
+            threads: 1,
+            profiler: 0,
+            trace: 0,
+            gen: "img224",
+            verbose: 0,
+            min_query_count: 30,
+            min_query_time: 10,
+            seqlen: 128,
+            enc_seqlen: 128,
+            io_binding: 0,
+            static_shapes: 0,
+            prevent_fallback: 0,
+            capture: 0,
+            preferred_layout: "NHWC",
+            go: 0,
+            csv: 0,
+            download: 0,
+            dump_graph: 0,
+            validate: 0,
+            values: 0,
+            noopt: 0,
+            once: 0,
+            name: undefined,
+            ext: undefined,
+        };
+        let vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+            let pair = vars[i].split("=");
+            if (pair[0] in config) {
+                const key = pair[0];
+                const value = decodeURIComponent(pair[1]);
+                if (typeof config[key] == "number") {
+                    config[key] = parseInt(value);
+                }
+                else {
+                    config[key] = value;
+                }
+            } else if (pair[0].length > 0) {
+                throw new Error("unknown argument: " + pair[0]);
+            }
+        }
+        if (config.once) {
+            config.min_query_count = 1;
+            config.min_query_time = 0;
+        }
+        if (config.name !== undefined) {
+            for (let i = 0; i < models.length; i++) {
+                const model = models[i];
+                if (model.name == config.name) {
+                    config.model_config = model;
+                    break;
+                }
+            }
+        }
+
+        return config;
+    }
+
+    function logPercentiles(config, data) {
+        const fp = 2;
+        let result = {};
+        const calculatePercentile = (percentile, numbers) => {
+            const pos = Math.ceil(percentile / 100.0 * numbers.length) - 1;
+            return numbers[pos];
+        };
+
+        data.sort(function (a, b) { return a - b }); // increasing.
+        const sum = data.reduce((a, b) => a + b);
+        result.avg = (sum / data.length).toFixed(fp);
+        result.count = data.length;
+        result.pass = 1;
+        result.mem = 0;
+        result.count = data.length;
+        result.threads = config.threads;
+        result.name = config.name;
+        result.provider = config.provider;
+        result.min = data[0].toFixed(fp);
+        result.max = data[data.length - 1].toFixed(fp);
+        result.p50 = calculatePercentile(50, data).toFixed(fp);
+        result.p95 = calculatePercentile(95, data).toFixed(fp);
+        result.p99 = calculatePercentile(99, data).toFixed(fp);
+        return result;
+    }
+
+    async function fetchAndCache(url) {
+        try {
+            let cache;
+            try {
+                cache = await caches.open("onnx");
+            } catch (e) {
+                const buffer = await fetch(url).then(response => response.arrayBuffer());
+                return buffer;
+            }
+            let cachedResponse = await cache.match(url);
+            if (cachedResponse === undefined) {
+                log(`${url} (network)`);
+                const buffer = await fetch(url).then(response => response.arrayBuffer());
+                try {
+                    await cache.put(url, new Response(buffer));
+                } catch (error) {
+                    console.error(error);
+                }
+                return buffer;
+            }
+            log(`${url} (cached)`);
+            const data = await cachedResponse.arrayBuffer();
+            return data;
+        } catch (error) {
+            log(`can't fetch ${url}`);
+            throw error;
+        }
+    }
+
+    function create_download_link(cons_cout) {
+        if (cons_out.length > 0) {
+            let link = document.getElementById('download').childNodes[0];
+            if (link === undefined) {
+                link = document.createElement("a", "download-link");
+                link.download = "profiler.log";
+                link.innerText = "Download";
+                document.getElementById('download').appendChild(link);
+            }
+            const base64 = btoa(cons_out.join('\n'));
+            link.href = `data:application/json;base64,${base64}`;
+        }
+    }
+
+    const type_to_func = {
+        "float32": Float32Array,
+        "float16": Uint16Array,
+        "int32": Int32Array,
+        "BigInt64Array": BigInt64Array,
+        "int64": BigInt64Array,
+    };
+
+    function clone(x) {
+        if (ort.env.wasm.proxy) {
+            let feed = {};
+            for (const [key, value] of Object.entries(x)) {
+                let func = type_to_func[value.type];
+                feed[key] = new ort.Tensor(value.type, func.from(value.data), value.dims);
+            }
+            return feed;
+        } else {
+            return x;
+        }
+    }
+
+    function copy_kv_caches(feed, outputs) {
+        for (const [name, t] of Object.entries(outputs)) {
+            if (name.startsWith('present')) {
+                let newName = name.replace('present', 'past_key_values');
+                if (t.dims[0] == 0) {
+                    // Optimization introduced by optimum to reuse past key values: keep previous value.
+                    t.dispose();
+                } else {
+                    // this dispose is critical since we own that gpu-buffer
+                    feed[newName].dispose();
+                    feed[newName] = t;
+                }
+            }
+        }
+    }
+
+    function webgpu_tensor_from_tensor(t) {
+        const device = ort.env.webgpu.device;
+        const size = Math.ceil(t.data.byteLength / 64) * 64;
+        const gpubuf = device.createBuffer({ mappedAtCreation: true, size: size, usage: GPUBufferUsage.STORAGE });
+        const arr = gpubuf.getMappedRange();
+        new Uint8Array(arr).set(t.data.buffer);
+        gpubuf.unmap();
+        return ort.Tensor.fromGpuBuffer(gpubuf, { dataType: t.type, dims: t.dims });
+    }
+
+    function apply_io_binding(sess, opt, feed) {
+        // encoder_hidden_states
+        opt.preferredOutputLocation = {};
+        const kv_names = sess.outputNames.filter(
+            n => n.includes('present') || n.includes('hidden_state') || n.includes('decoder_attentions') //|| n.includes('cross_attentions')
+        );
+        kv_names.forEach(name => {
+            opt.preferredOutputLocation[`${name}`] = "gpu-buffer";
+        });
+        /* this might speed up things a little
+        for (const [name, t] of Object.entries(feed)) {
+            if (name.includes('encoder_hidden_states')) {
+                feed[name] = webgpu_tensor_from_tensor(t);
+                t.dispose();
+            }
+        };
+        */
+    }
+
+    function cachestats(title) {
+        if (ort.env.webgpu.cachealloc !== undefined) {
+            const json = {
+                name: title,
+                alloc: ort.env.webgpu.cachealloc,
+                free: ort.env.webgpu.cachefree,
+                miss: ort.env.webgpu.cachemiss,
+                cacheinflight: ort.env.webgpu.cacheinflight
+            };
+            console.log(JSON.stringify(json));
+        }
+    }
+
+    function compareArrays(a, b, relError = 0.01, absError = 0.01) {
+        // Check if the arrays have the same length
+        let res = [];
+        if (a.length !== b.length) {
+            return false;
+        }
+        var max_rtol = 0;
+        var max_atol = 0;
+        for (let i = 0; i < a.length; i++) {
+            // Get the absolute difference between the corresponding elements
+            let v1 = a[i];
+            let v2 = b[i];
+            if (typeof v1 == "bigint") {
+                v1 = parseFloat(v1.toString())
+            }
+            if (typeof v2 == "bigint") {
+                v2 = parseFloat(v2.toString())
+            }
+            const diff = Math.abs(v1 - v2);
+
+            // calculate atol and rtol
+            const rtol = Math.abs(v2) > 1e-5 ? Math.abs(diff / v2) : 0;
+            const atol = Math.abs(diff);
+
+            if (rtol > max_rtol) {
+                max_rtol = rtol;
+            }
+            if (atol > max_atol) {
+                max_atol = atol;
+            }
+            // Check if the difference is greater than the absolute error
+            if ((atol > absError) || (rtol > relError)) {
+                res.push([i, v1, v2, rtol, atol]);
+            }
+        }
+        log(`max rtol: ${max_rtol}, max atol: ${max_atol}`);
+        return res;
+    }
+
+    function avg(arr) {
+        const zero = (typeof arr[0] == "bigint") ? 0n : 0;
+        const len = (typeof arr[0] == "bigint") ? BigInt(arr.length) : arr.length;
+        return Number(arr.reduce((a, b) => a + b, zero)) / (1. * Number(len));
+    }
+
+    function redirect_output() {
+        console.log = function (message) {
+            try {
+                if (!message.includes('_fence_')) {
+                    cons_out.push(message);
+                }
+            } catch (e) {
+                cons_out.push(message);
+            }
+        };
+        console.error = console.log;
+    }
+
+    async function add_extra_options(opt, config) {
+        if (config.gen == "sd-turbo-vae") {
+            opt.freeDimensionOverrides = {
+                batch_size: 1, num_channels_latent: 4, height_latent: 64, width_latent: 64
+            }
+        }
+        if (config.gen.startsWith("sd-text-encoder")) {
+            opt.freeDimensionOverrides = {
+                batch_size: 1, // sequence_length: 77,
+            };
+        }
+        if (config.name == "VideoSuperResolution-DXM") {
+            opt.freeDimensionOverrides = {
+                n: 1, c: 3, h: 224, w: 224,
+                //n: 1, c: 3, h: 512, w: 512,
+            }
+        }
+        if (config.gen == "nbitmatmul") {
+            opt.preferredOutputLocation = { 'Y': "gpu-buffer" };
+        }
+    }
+
+    async function loadModels() {
+        const json_bytes = await fetchAndCache("ort-models.json");
+        if (json_bytes === undefined) {
+            throw new Error("ort-models.json not found");
+        }
+        let textDecoder = new TextDecoder();
+        let model = JSON.parse(textDecoder.decode(json_bytes));
+        console.log(`loaded ${model.length} models`);
+        return model;
+    }
+
+    const rows = [
+        "name", "provider", "pass", "threads", "avg", "min", "max", "p50", "p95", "p99",
+        "count", "mem", "tag", "platform", "fist_run", "load"
+    ];
+
+    var cons_out = [];
+
+    const progress = document.getElementById('progress');
+    models = await loadModels();
+
+    const config = getConfig();
+
+    ort.env.wasm.numThreads = config.threads;
+    ort.env.wasm.simd = true;
+    // ort.env.wasm.proxy = (config.provider == "webnn");
+
+    populateNav(config);
+
+
+    switch (config.provider) {
+        case "webgpu":
+            if (!("gpu" in navigator)) {
+                throw new Error("webgpu is NOT supported");
+            }
+            break;
+        case "webnn":
+            if (!("ml" in navigator)) {
+                throw new Error("webnn is NOT supported");
+            }
+            break;
+    }
+
+    async function bench1() {
+        try {
+            document.getElementById('status').innerText = "";
+            const use_proxy = ort.env.wasm.proxy;
+
+            const opt = {
+                executionProviders: ["wasm"],
+                enableProfiling: config.profiler > 0,
+                enableMemPattern: false,
+                enableCpuMemArena: false,
+                enableGraphCapture: config.capture == 1,
+                extra: {
+                    session: {
+                        // minSubGraphSize: "2",
+                        disable_prepacking: "1",
+                        //use_device_allocator_for_initializers: "1",
+                        use_ort_model_bytes_directly: "1",
+                        use_ort_model_bytes_for_initializers: "1",
+                        disable_cpu_ep_fallback: config.prevent_fallback,
+                    }
+                },
+            };
+
+            if (config.verbose) {
+                opt.logSeverityLevel = 0;
+                opt.logVerbosityLevel = 0;
+                ort.env.logLevel = "verbose";
+                if (config.verbose > 1) {
+                    ort.env.debug = true;
+                }
+            }
+            ort.env.webgpu.profiling = {}
+            switch (config.provider) {
+                case "wasm":
+                    break;
+                case "webnn":
+                    opt.executionProviders = [{
+                        name: "webnn",
+                        deviceType: config.device,
+                        powerPreference: 'default',
+                        numThreads: config.threads,
+                    }];
+                    break;
+                case "webgpu":
+                    opt.executionProviders = [{
+                        name: "webgpu",
+                        preferredLayout: config.preferred_layout,
+                    }];
+                    if (config.profiler) {
+                        //ort.env.webgpu.profilingMode = 'default';
+                        ort.env.webgpu.profiling.mode = 'default';
+                    }
+                    break;
+                case "xnnpack":
+                    opt.executionProviders = ["xnnpack"];
+                    break;
+            }
+
+            await add_extra_options(opt, config);
+
+            if (config.dump_graph) {
+                opt.optimizedModelFilePath = 'opt.onnx';
+            }
+            if (config.noopt) {
+                opt.graphOptimizationLevel = "disabled";
+            }
+
+            if (config.download || config.profiler === 2) {
+                redirect_output();
+            }
+
+            log(`loading... ${config.name},  ${config.provider}`);
+            let model_bytes = await fetchAndCache("../models/" + config.model);
+            let model_size = model_bytes.byteLength;
+            if (config.ext) {
+                const basename = config.model.split("/").pop();
+                const basedir = config.model.split("/").slice(0, -1).join("/");
+                const externalData = await fetchAndCache("../models/" + basedir + "/" + config.ext);
+                model_size += externalData.byteLength;
+                opt.externalData = [{ data: externalData, path: config.ext }];
+            }
+            log(`model size ${Math.round(model_size / 1024 / 1024)} MB`);
+
+            if (config.static_shapes) {
+                if (config.model_config.freeDimensionOverrides === undefined) {
+                    throw new Error("static_shapes requires freeDimensionOverrides");
+                }
+                opt.freeDimensionOverrides = config.model_config.freeDimensionOverrides;
+            }
+
+            const load_start = performance.now();
+            var sess = await ort.InferenceSession.create(model_bytes, opt);
+            const load = performance.now() - load_start;
+            const feed = await make_inputs(config.gen, sess.inputNames, config);
+            const durations = [];
+            const title = `${config.name}/${config.provider}/${config.threads}`;
+
+            if (config.validate) {
+                let vsess = await ort.InferenceSession.create(model_bytes, { executionProviders: ["wasm"] });
+                const valid_outputs = await vsess.run(clone(feed));
+                vsess.release();
+                const outputs = await sess.run(clone(feed));
+                for (const [name, t] of Object.entries(valid_outputs)) {
+                    if (name.startsWith("present.")) {
+                        continue;
+                    }
+                    const t1 = valid_outputs[name];
+                    const t2 = outputs[name];
+                    if (JSON.stringify(t1.dims) != JSON.stringify(t2.dims)) {
+                        log(`${name}, ERROR`);
+                        log(`${name}, shape doesn't match: ${t1.dims} vs ${t2.dims}`);
+                    }
+                    const res = compareArrays(t1.data, t2.data, 0.01, 0.01);
+                    if (res.length > 0) {
+                        log(`${name}, ERROR`);
+                        log(`${name}, ${res.length} of ${t1.data.length} or ${(res.length * 100 / t1.data.length).toFixed(1)}% are wrong`);
+                        for (var i = 0; i < Math.min(5, res.length); i++) {
+                            log(`${name}, ${res[i]}`);
+                        }
+                    } else {
+                        log(`${name}, OK`);
+                    }
+                }
+                return;
+            }
+            if (config.provider == "webgpu" && config.io_binding) {
+                apply_io_binding(sess, opt, feed);
+                sess.release();
+                sess = await ort.InferenceSession.create(model_bytes, opt);
+            }
+            if (config.trace) {
+                ort.env.trace = true;
+                ort.env.webgpu.profiling.ondata = (version, inputsMetadata, outputsMetadata, kernelId, kernelType,
+                    kernelName, programName, startTime, endTime) => { };
+            }
+            if (config.profiler) {
+                log("profiling...");
+                for (var i = 0; i < 11; i++) {
+                    const start = performance.now();
+                    const outputs = await sess.run(clone(feed));
+                    durations.push(performance.now() - start);
+                    const use_cache_var = feed["use_cache_branch"] !== undefined;
+                    if (i == 0 && config.gen != "phi3" && config.name != "phi3-v-text" && config.name != "reader-1.5b" && (use_cache_var || feed['past_key_values.0.key'] !== undefined)) {
+                        if (config.gen != "llm-decoder" || config.seqlen == 1) {
+                            copy_kv_caches(feed, outputs);
+                            log(`using use_cache_branch, setting to 1`);
+                            if (use_cache_var) {
+                                feed['use_cache_branch'] = new ort.Tensor("bool", [true], [1]);
+                            }
+                        }
+                    } else if (config.io_binding) {
+                        copy_kv_caches(feed, outputs);
+                    }
+                }
+                await sess.endProfiling();
+                log("profiling done @@1.");
+                const r = logPercentiles(config, durations);
+                const result = `${title} avg: ${r.avg}, min: ${r.min}, max: ${r.max}, p50: ${r.p50}, p95: ${r.p95}, p99: ${r.p99}, count=${r.count}`;
+                log(result + " @@1");
+                cachestats(title);
+                sess.release();
+                return;
+            }
+
+            model_bytes = undefined;
+            opt.externalData = undefined;
+
+            log("warmup...");
+            await sleep(200);
+            let fist_run = 0;
+            {
+                const start = performance.now();
+                let outputs = await sess.run(clone(feed));
+                fist_run = performance.now() - start;
+                log(`1strun: ${fist_run.toFixed(2)}ms, load: ${load.toFixed(2)}ms`);
+                await sleep(200);
+                if (config.verbose) {
+                    console.log(outputs);
+                }
+                if (config.values) {
+                    cons_out.push("{");
+                    for (const [name, t] of Object.entries(outputs)) {
+                        if (t.location === "cpu" && t.type != "float16") {
+                            cons_out.push(`"${name}": {"shape": [${t.dims}], "output-avg": 0, "output-val": [${t.data.slice(0, 1000)}]},`);
+                        }
+                    }
+                    cons_out.push(`{"nothing": {}}}`);
+                    return;
+                }
+                if (feed["use_cache_branch"] !== undefined) {
+                    copy_kv_caches(feed, outputs)
+                    if (config.gen != "llm-decoder" || config.seqlen == 1) {
+                        // this is a bit tricky - for some models like gpt2 use of the caches assumes
+                        // we pass seqlen=1. So if seqlen=1 set use_cache_branch=1, else don't use the cache.
+                        // For models like t5 we can use the cache in all cases.
+                        log(`using use_cache_branch, setting to 1`);
+                        feed['use_cache_branch'] = new ort.Tensor("bool", [true], [1]);
+                    }
+                }
+                for (var i = 0; i < 4; i++) {
+                    outputs = await sess.run(clone(feed));
+                    if (config.io_binding) {
+                        copy_kv_caches(feed, outputs);
+                    }
+                }
+            }
+
+            log("running...");
+            progress.parentNode.style.display = "block";
+            await sleep(100);
+            const end_time = performance.now() + config.min_query_time * 1000;
+            let query_count = 0;
+            let now;
+            let pct_last = 0;
+
+            do {
+                let outputs;
+                const start = performance.now();
+                if (config.trace) {
+                    console.timeStamp("RUN-BEGIN");
+                    outputs = await sess.run(clone(feed));
+                    console.timeStamp("RUN-END");
+                } else {
+                    outputs = await sess.run(clone(feed));
+                }
+                now = performance.now();
+                durations.push(now - start);
+                if (config.io_binding) {
+                    copy_kv_caches(feed, outputs);
+                } else {
+                    // iterate outputs and dispose gpu-buffer
+                    for (const [name, t] of Object.entries(outputs)) {
+                        if (t.location === "gpu-buffer") {
+                            t.dispose();
+                        }
+                    }
+                }
+                query_count++;
+                const pct_new = Math.min((100 * query_count) / config.min_query_count, (100 - (100 * (end_time - now)) / config.min_query_time / 1000));
+                if (pct_last + 10 < pct_new) {
+                    pct_last = pct_new;
+                    progress.style.width = pct_new.toFixed(1) + "%";
+                    progress.textContent = progress.style.width;
+                    await sleep(50);
+                }
+            } while (now < end_time || query_count < config.min_query_count);
+            const r = logPercentiles(config, durations);
+            r.fist_run = fist_run.toFixed(2);
+            r.load = load.toFixed(2);
+            r.platform = ""
+            if (config.csv) {
+                r.tag = "@@2";
+                const csv = rows.map((x) => { return r[x]; }).join(",");
+                console.log(csv);
+            }
+            const result = `${title} avg: ${r.avg}, min: ${r.min}, max: ${r.max}, p50: ${r.p50}, p95: ${r.p95}, p99: ${r.p99}, count=${r.count}`;
+            log(result + " @@1");
+            document.getElementById('results').innerText += result + "\n";
+            cachestats(title);
+            sess.release();
+        } catch (e) {
+            throw e;
+        }
+    }
+
+    export async function bench() {
+        try {
+            await bench1();
+        } catch (e) {
+            log(`${config.name} ${e} @@1`);
+            console.log(e);
+            if (config.csv) {
+                log(`${config.name},${config.provider},${config.threads},0,,,,,,,,,,${e.message.replace("\n", " ")} @@2`);
+            }
+        }
+        create_download_link(cons_out);
+        progress.parentNode.style.display = "none";
+        progress.style.width = "0%";
+    }
+    window.bench = bench;
+    
+    if (config.go) {
+        bench();
+    }
+</script>
+
+</html>
