@@ -1,7 +1,7 @@
 #
 # tool to analyze onnxruntime trace files
 # for example:
-# python ort-trace.py -skip-first --provider --type-in-name -l 50  trace.json
+# python ort-trace.py --skip-first --provider --type-in-name -l 50  trace.json
 #
 
 import argparse
@@ -44,26 +44,20 @@ def get_args():
     return args
 
 
-def clean_json(s):
-    s = re.sub(",[ \t\r\n]*}", "}", s)
-    s = re.sub(",[ \t\r\n]*\]", "]", s)
-    return s
-
-
 def json_to_df(profile_path, exclude, webgpu_timestamps, verbose):
     entries = []
     op_index = -1
     webgpu_acc = 0
 
     with open(profile_path, "r") as f:
-        # data = json.load(f)
-        data = json.loads(clean_json(f.read()))
+        data = json.load(f)
 
     if type(data) == dict:
         data = data['traceEvents']
 
     if not webgpu_timestamps:
         # make a pass and get webgpu kernel timestamps
+        webgpu_counts = {}
         webgpu_timestamps = {}
         for item in data:
             dur = item.get("dur")
@@ -73,9 +67,14 @@ def json_to_df(profile_path, exclude, webgpu_timestamps, verbose):
             if cat not in ["Api"]:
                 continue
             name = item['name']
-            i = name.rfind("_")
+            i = name.find("&")
             name = name[:i]
-            webgpu_timestamps[name] = dur
+            webgpu_timestamps[name] = webgpu_timestamps.get(name, 0) + dur
+            webgpu_counts[name] = webgpu_counts.get(name, 0) + 1
+
+        for k, v in webgpu_timestamps.items():
+            if webgpu_counts[k] > 1:
+                webgpu_timestamps[k] = v / webgpu_counts[k]
 
     for item in data:
         dur = item.get("dur")
@@ -111,26 +110,20 @@ def json_to_df(profile_path, exclude, webgpu_timestamps, verbose):
             input_shape = str([list(i.values())[0] for i in input_type_shape])[1:-1]
             # output_type_shape = arg.get('output_type_shape')
 
+            
             if provider == "Js" and webgpu_timestamps:
                 if op == "MemcpyToHost":
-                    # dur -= webgpu_acc
-                    # webgpu_acc = 0
                     pass
                 else:
                     w = webgpu_timestamps.get(name)
                     if w:
                         kernel = w['time']
-                        # next line will substract the kernel time from memcopytohost
-                        # webgpu_acc += w['time']
-                        # print(f"{name}, {op}, {provider} not a kernel")
 
             if provider == "WebGpu" and webgpu_timestamps:
-                w = webgpu_timestamps.get(name)
-                if w:
-                    kernel = w
+                kernel = webgpu_timestamps.get(name, 0)
 
             e = {
-                "name": name, "dur": dur, "kernel": kernel, "op_type": op, "provider": provider,
+                "name": name, "cpu_dur": dur, "shader_dur": kernel, "op_type": op, "provider": provider,
                 "parameter_size": parameter_size, "activation_size": activation_size,
                 "output_size": output_size, "shape": input_shape, "dtype": input_dtype,
                 "ts": ts
@@ -175,10 +168,10 @@ def main():
         df = df[second:]
 
     pd.set_option('display.max_colwidth', 120)
-    pct_field = "kernel" if args.pct_kernel else "dur"
-    df2 = df[['dur', 'kernel', 'count']].sum()
+    pct_field = "shader_dur" if args.pct_kernel else "cpu_dur"
+    df2 = df[['cpu_dur', 'shader_dur', 'count']].sum()
     df['pct'] = (100 * df[pct_field] / df2[pct_field])
-    mem_field = "output_size"
+    mem_field = "activation_size"
     sort_by = mem_field if args.mem else pct_field
     extra_fields = [mem_field] if args.mem else []
     if args.provider:
@@ -188,7 +181,7 @@ def main():
     if args.type_in_name:
         df['op_type'] = df['op_type'] + "." + df['dtype']
     if not args.nodes:
-        fields = ["op_type", "dur", "kernel", "pct", "count"] + extra_fields
+        fields = ["op_type", "cpu_dur", "shader_dur", "pct", "count"] + extra_fields
         groups = ['op_type']
         if args.dtypes:
             groups.append('dtype')
@@ -203,25 +196,30 @@ def main():
             df1[mem_field] = df1[mem_field] / df1['count'] / 1024 / 1024
         df1 = df1.sort_values(by=sort_by, ascending=False)[:top]
         df1['csum'] = df1['pct'].cumsum()
-        df1['avg'] = df1['dur'] / df1['count']
-        df1['avg_kernel'] = df1['kernel'] / df1['count']
+        df1['avg_cpu'] = df1['cpu_dur'] / df1['count']
+        df1['avg_shader'] = df1['shader_dur'] / df1['count']
         print("\n--Top ops by total runtime")
         print(df1.round(digits).to_string(index=True))
     else:
-        fields = ["name", "op_type", "dur", "kernel", "pct", "count"] + extra_fields
+        fields = ["name", "op_type", "cpu_dur", "shader_dur", "pct", "count"] + extra_fields
         df1 = df[fields].groupby(['name', "op_type"]).sum()
         if args.mem:
             df1[mem_field] = df1[mem_field] / df1['count'] / 1024 / 1024
         df1 = df1.sort_values(by=sort_by, ascending=False)[:top]
         df1['csum'] = df1['pct'].cumsum()
-        df1['avg'] = df1['dur'] / df1['count']
-        df1['avg_kernel'] = df1['kernel'] / df1['count']
+        df1['avg_cpu'] = df1['dur'] / df1['count']
+        df1['avg_shader'] = df1['shader_dur'] / df1['count']
         print("\n--Top nodes by total runtime")
         print(df1.round(digits).to_string(index=True))
 
     if args.csv:
         if args.shapes:
             df1 = df1.reset_index().set_index('op_type')
+        df1['pct'] = df1['pct'].round(1)
+        df1['csum'] = df1['csum'].round(1)
+        df1['avg_cpu'] = df1['avg_cpu'].round(1)
+        df1['avg_shader'] = df1['avg_shader'].round(1)
+
         df1['aggname'] = df1.index.map(lambda x: x[0] + "." + x[1])
         # df1['aggimpl'] = df1["aggname"].apply(lambda x: impl.get(x, 0))
         df1['aggsrc'] = os.path.basename(args.strings[0])
