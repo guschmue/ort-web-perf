@@ -57,7 +57,7 @@ def get_all_tensors(model_proto):
     return itertools.chain(get_initializer_tensors(model_proto), get_attribute_tensors(model_proto))
 
 
-def save_external(model_proto, external_data_name, max_size, threshhold, maxchunks):
+def save_external(model_proto, external_data_name, max_size, threshhold, maxchunks, verbose):
     idx = 0
     file_name = os.path.basename(external_data_name)
 
@@ -77,7 +77,15 @@ def save_external(model_proto, external_data_name, max_size, threshhold, maxchun
     for tensor in get_all_tensors(model_proto):
         tensor_data = tensor.raw_data
         tensor_size = len(tensor_data)
-        assert tensor_data and tensor_size > 0
+        if verbose:
+            if len(tensor.name) == 0:
+                print(f"WARNING: tensor with no name, size: {tensor_size} bytes")
+            print(f"tensor: {tensor.name}, loc: {tensor.data_location}, size: {tensor_size} bytes")
+
+        if len(tensor.name) == 0:
+            continue
+
+        # assert tensor_data and tensor_size > 0
         if tensor_size < threshhold:
             # small tensors are stored in the model file
             continue
@@ -119,6 +127,7 @@ def get_args():
     parser.add_argument("--size", default=DEFAULT_MAX_SIZE, type=int, help='max weight size')
     parser.add_argument("--threshhold", default=0, type=int, help='threshhold in MB to be external data')
     parser.add_argument("--maxchunks", default=99, type=int, help='maximum number of datafiles')
+    parser.add_argument("--verbose", "-v", action="store_true", help='verbose')
     args = parser.parse_args()
     return args
 
@@ -127,7 +136,7 @@ def main():
     args = get_args()
     model = onnx.load_model(args.input)
     if args.output:
-        save_external(model, args.output, args.size * MB, args.threshhold * MB, args.maxchunks)
+        save_external(model, args.output, args.size * MB, args.threshhold * MB, args.maxchunks, args.verbose)
 
 
 if __name__ == '__main__':
