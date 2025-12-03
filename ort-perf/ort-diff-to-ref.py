@@ -71,6 +71,7 @@ def get_args():
     parser.add_argument("--atol", type=float, default="0.005", help="default atol")
     parser.add_argument("--config", default="ort-models.json", help="test config")
     parser.add_argument("--csv", help="csv")
+    parser.add_argument("--save-optimized", help="save optimized model")
     parser.add_argument(
         "-e",
         type=str,
@@ -119,7 +120,7 @@ def save_protos(inputs, outputs, output_names, name):
         save_protobuf(data_full_path, t)
 
 
-def make_session(model_path, ep, profile, verbose):
+def make_session(model_path, ep, profile, save_optimized, verbose):
     opt = rt.SessionOptions()
     if profile:
         opt.enable_profiling = True
@@ -137,6 +138,10 @@ def make_session(model_path, ep, profile, verbose):
         opt.enable_mem_pattern = False
     elif ep == "webgpu":
         providers = ["WebGpuExecutionProvider"]
+        opt.add_session_config_entry("ep.webgpuexecutionprovider.forceCpuNodeNames", "/GatherND")
+
+    if save_optimized:
+        opt.optimized_model_filepath = save_optimized
 
     sess = rt.InferenceSession(model_path, sess_options=opt, providers=providers)
     return sess
@@ -159,11 +164,19 @@ def run_one_model(model, args):
 
     try:
         # load model to cpu and get the reference output
-        cpu_sess = make_session(model_path, "cpu", False, False)
+        cpu_sess = make_session(model_path, "cpu", False, False, False)
         feed = gen_data(cpu_sess, model["gen"], False)
         output_names = [o.name for o in cpu_sess.get_outputs()]
 
+        if args.verbose:
+            print("input:")
+            for k, v in feed.items():
+                print(f"  {k}: {v.shape} {v.dtype}")
         ref_outputs = cpu_sess.run(output_names, feed)
+        if args.verbose:
+            print("output:")
+            for idx, v in enumerate(ref_outputs):
+                print(f"  {output_names[idx]}: {v.shape} {v.dtype}")
 
         if args.test_data:
             # save model and test data to a new directory
@@ -183,11 +196,6 @@ def run_one_model(model, args):
 
     status.setup = True
 
-    if args.verbose:
-        print("input:")
-        for k, v in feed.items():
-            print(f"  {k}: {v.shape} {v.dtype}")
-
     rtol = model.get("rtol", args.rtol)
     atol = model.get("atol", args.atol)
     nocheck = model.get("nocheck", False)
@@ -196,7 +204,7 @@ def run_one_model(model, args):
     status.shape = False
     try:
         # load model to the target EP and get the output
-        ep_sess = make_session(model_path, args.e, False, args.verbose)
+        ep_sess = make_session(model_path, args.e, False, args.save_optimized, args.verbose)
         start = time.time()
         outputs = ep_sess.run(output_names, feed)
         status.first_run = time.time() - start
@@ -216,9 +224,15 @@ def run_one_model(model, args):
                 results_ok = nocheck or np.allclose(vr, v, rtol, atol)
                 if not results_ok:
                     status.val = False
-                if args.debug and not results_ok:
-                    # print the difference
-                    np.testing.assert_allclose(vr, v, rtol, atol)
+                if args.debug:
+                    if not results_ok:
+                        # print the difference
+                        try:
+                            np.testing.assert_allclose(vr, v, rtol, atol)
+                        except Exception as e:
+                            print(f"== output {i} - {output_names[i]}: {e}")
+                    else:
+                        print(f"== output {i} - {output_names[i]}: OK")
                 if not results_ok:
                     status.err = f"{status.err},{output_names[i]}" if status.err != "ok" else f"missmatch: {output_names[i]}"
 
@@ -238,7 +252,7 @@ def run_one_model(model, args):
         try:
             os.makedirs(args.profile, exist_ok=True)
             profile_file = os.path.join(args.profile, name + ".json")
-            ep_sess = make_session(model_path, args.e, True, args.verbose)
+            ep_sess = make_session(model_path, args.e, True, args.save_optimized, args.verbose)
             for i in range(10):
                 _ = ep_sess.run(output_names, feed)
             trace_file = ep_sess.end_profiling()
@@ -259,13 +273,17 @@ def main(args):
     else:
         models = [c for c in config if c.get("category") == args.cat]
 
-    start = time.time()
-    # makes sure we got the models installed
+    if len(models) == 0:
+        print(f"no models found for cat={args.cat}, models={args.models}")
+        return 1
+
     for model in models:
         path = os.path.join(args.root, model["path"])
         if not os.path.exists(path):
             print(f"model {model['name']} not found in {path}")
 
+    start = time.time()
+    # makes sure we got the models installed
     if args.csv:
         f = open(args.csv, "w", encoding="utf-8")
         writer = csv.writer(f)

@@ -4,7 +4,8 @@
         "name": "mobilenet-v4-small",
         "gen": "img224",
         "path": "tjs/mobilenetv4_conv_small.e2400_r224_in1k/onnx/model.onnx",
-        "source": "https://huggingface.co/onnx-community/mobilenetv4_conv_small.e2400_r224_in1k"
+        "source": "https://huggingface.co/onnx-community/mobilenetv4_conv_small.e2400_r224_in1k",
+        "hfrepo": "onnx-community/mobilenetv4_conv_small.e2400_r224_in1k"
     },
     {
         "category": "default",
@@ -13,7 +14,8 @@
         "path": "tjs/mobilenetv4_conv_small.e2400_r224_in1k/onnx/model_fp16.onnx",
         "rtol": 0.01,
         "atol": 1.2,
-        "source": "https://huggingface.co/onnx-community/mobilenetv4_conv_small.e2400_r224_in1k"
+        "source": "https://huggingface.co/onnx-community/mobilenetv4_conv_small.e2400_r224_in1k",
+        "hfrepo": "onnx-community/mobilenetv4_conv_small.e2400_r224_in1k"
     },
     {
         "category": "default",
@@ -29,7 +31,8 @@
         "path": "tjs/depth-anything-v2-small/onnx/model.onnx",
         "rtol": 0.01,
         "atol": 0.2,
-        "source": "https://huggingface.co/onnx-community/depth-anything-v2-small"
+        "source": "https://huggingface.co/onnx-community/depth-anything-v2-small",
+        "hfrepo": "onnx-community/depth-anything-v2-small"
     },
     {
         "category": "default",
@@ -38,20 +41,24 @@
         "path": "tjs/depth-anything-v2-small/onnx/model_fp16.onnx",
         "rtol": 0.04,
         "atol": 0.2,
-        "source": "https://huggingface.co/onnx-community/depth-anything-v2-small"
+        "source": "https://huggingface.co/onnx-community/depth-anything-v2-small",
+        "hfrepo": "onnx-community/depth-anything-v2-small"
     },
     {
         "category": "default",
         "name": "resnet50",
         "gen": "img224",
         "path": "tjs/resnet-50/onnx/model.onnx",
-        "source": "https://huggingface.co/Xenova/resnet-50"
+        "source": "https://huggingface.co/Xenova/resnet-50",
+        "hfrepo": "Xenova/resnet-50"
     },
     {
         "category": "default",
         "name": "resnet50-fp16",
         "gen": "img224",
         "path": "tjs/resnet-50/onnx/model_fp16.onnx",
+        "source": "https://huggingface.co/Xenova/resnet-50",
+        "hfrepo": "Xenova/resnet-50",
         "rtol": 0.01,
         "atol": 0.8
     },
@@ -59,144 +66,188 @@
         "category": "default",
         "name": "albert-base-v2",
         "gen": "bert64",
-        "path": "tjs/albert-base-v2/onnx/model.onnx"
+        "path": "tjs/albert-base-v2/onnx/model.onnx",
+        "source": "https://huggingface.co/Xenova/albert-base-v2",
+        "hfrepo": "Xenova/albert-base-v2"
     },
     {
         "category": "default",
         "name": "bert-base-uncased",
         "gen": "bert64",
-        "path": "tjs/bert-base-uncased/onnx/model.onnx"
+        "path": "tjs/bert-base-uncased/onnx/model.onnx",
+        "source": "https://huggingface.co/onnx-community/bert-base-uncased-ONNX",
+        "hfrepo": "onnx-community/bert-base-uncased-ONNX"
     },
     {
         "category": "default",
         "name": "distilbert-base-uncased",
         "gen": "bert64",
-        "path": "tjs/distilbert-base-uncased/onnx/model.onnx"
+        "path": "tjs/distilbert-base-uncased/onnx/model.onnx",
+        "source": "https://huggingface.co/onnx-community/distilbert-base-uncased-ONNX",
+        "hfrepo": "onnx-community/distilbert-base-uncased-ONNX"
     },
     {
         "category": "default",
         "name": "roberta-base",
         "gen": "bert64",
-        "path": "tjs/roberta-base/onnx/model.onnx"
+        "path": "tjs/roberta-base/onnx/model.onnx",
+        "source": "https://huggingface.co/Xenova/roberta-base",
+        "hfrepo": "Xenova/roberta-base"
     },
     {
         "category": "default",
         "name": "sentence-trans-msbert",
         "gen": "bert64",
-        "path": "tjs/sentence-transformers/msmarco-distilbert-base-v4/onnx/model.onnx"
+        "path": "tjs/sentence-transformers/msmarco-distilbert-base-v4/onnx/model.onnx",
+        "source": "https://huggingface.co/Xenova/msmarco-distilbert-base-v4",
+        "hfrepo": "Xenova/msmarco-distilbert-base-v4"
     },
     {
         "category": "default",
         "name": "nli-deberta-v3-small",
         "gen": "bert64",
-        "path": "tjs/cross-encoder/nli-deberta-v3-small/onnx/model.onnx"
+        "path": "tjs/cross-encoder/nli-deberta-v3-small/onnx/model.onnx",
+        "source": "https://huggingface.co/Xenova/nli-deberta-v3-small",
+        "hfrepo": "Xenova/nli-deberta-v3-small"
     },
     {
         "category": "default",
         "name": "t5-encoder",
         "gen": "t5-encoder",
-        "path": "tjs/t5-small/onnx/encoder_model.onnx"
+        "path": "tjs/t5-small/onnx/encoder_model.onnx",
+        "source": "https://huggingface.co/Xenova/t5-small",
+        "hfrepo": "Xenova/t5-small"
     },
     {
         "category": "default",
         "name": "t5-decoder-seq1",
         "gen": "t5-decoder",
         "path": "tjs/t5-small/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=1"
+        "args": "&seqlen=1",
+        "source": "https://huggingface.co/Xenova/t5-small",
+        "hfrepo": "Xenova/t5-small"
     },
     {
         "category": "default",
         "name": "t5-decoder-iob-seq1",
         "gen": "t5-decoder",
         "path": "tjs/t5-small/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=1&io_binding=1"
+        "args": "&seqlen=1&io_binding=1",
+        "source": "https://huggingface.co/Xenova/t5-small",
+        "hfrepo": "Xenova/t5-small"
     },
     {
         "category": "default",
         "name": "t5-v1.1-encoder",
         "gen": "t5-encoder",
-        "path": "tjs/google/t5-v1_1-small/onnx/encoder_model.onnx"
+        "path": "tjs/google/t5-v1_1-small/onnx/encoder_model.onnx",
+        "source": "https://huggingface.co/Xenova/t5-v1_1-small",
+        "hfrepo": "Xenova/t5-v1_1-small"
     },
     {
         "category": "default",
         "name": "t5-v1.1-decoder-seq1",
         "gen": "flan-t5-decoder",
         "path": "tjs/google/t5-v1_1-small/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=1"
+        "args": "&seqlen=1",
+        "source": "https://huggingface.co/Xenova/flan-t5-small",
+        "hfrepo": "Xenova/flan-t5-small"
     },
     {
         "category": "default",
         "name": "flan-t5-encoder",
         "gen": "t5-encoder",
-        "path": "tjs/google/flan-t5-small/onnx/encoder_model.onnx"
+        "path": "tjs/google/flan-t5-small/onnx/encoder_model.onnx",
+        "source": "https://huggingface.co/Xenova/flan-t5-small",
+        "hfrepo": "Xenova/flan-t5-small"
     },
     {
         "category": "default",
         "name": "flan-t5-decoder-seq1",
         "gen": "flan-t5-decoder",
         "path": "tjs/google/flan-t5-small/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=1"
+        "args": "&seqlen=1",
+        "source": "https://huggingface.co/Xenova/flan-t5-small",
+        "hfrepo": "Xenova/flan-t5-small"
     },
     {
         "category": "default",
         "name": "gpt-neo-125m-seq1",
         "gen": "llm-decoder",
         "path": "tjs/EleutherAI/gpt-neo-125M/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=1"
+        "args": "&seqlen=1",
+        "source": "https://huggingface.co/Xenova/gpt-neo-125M",
+        "hfrepo": "Xenova/gpt-neo-125M"
     },
     {
         "category": "default",
         "name": "distilgpt2-seq1",
         "gen": "llm-decoder",
         "path": "tjs/distilgpt2/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=1"
+        "args": "&seqlen=1",
+        "source": "https://huggingface.co/Xenova/distilgpt2",
+        "hfrepo": "Xenova/distilgpt2"
     },
     {
         "category": "default",
         "name": "distilgpt2-seq16",
         "gen": "llm-decoder",
         "path": "tjs/distilgpt2/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=16"
+        "args": "&seqlen=16",
+        "source": "https://huggingface.co/Xenova/distilgpt2",
+        "hfrepo": "Xenova/distilgpt2"
     },
     {
         "category": "default",
         "name": "gpt2-seq1",
         "gen": "llm-decoder",
         "path": "tjs/gpt2/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=1"
+        "args": "&seqlen=1",
+        "source": "https://huggingface.co/Xenova/gpt2",
+        "hfrepo": "Xenova/gpt2"
     },
     {
         "category": "default",
         "name": "gpt2-seq16",
         "gen": "llm-decoder",
         "path": "tjs/gpt2/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=16"
+        "args": "&seqlen=16",
+        "source": "https://huggingface.co/Xenova/gpt2",
+        "hfrepo": "Xenova/gpt2"
     },
     {
         "category": "default",
         "name": "nomic-embed",
         "gen": "nomic-embed",
-        "path": "nomic-ai/nomic-embed-text-v1.5/onnx/model.onnx"
+        "path": "nomic-ai/nomic-embed-text-v1.5/onnx/model.onnx",
+        "source": "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5",
+        "hfrepo": "nomic-ai/nomic-embed-text-v1.5"
     },
     {
         "category": "default",
         "name": "hf-whisper-encoder",
         "gen": "whisper-encoder",
-        "path": "Xenova/whisper-tiny/onnx/encoder_model.onnx"
+        "path": "Xenova/whisper-tiny/onnx/encoder_model.onnx",
+        "source": "https://huggingface.co/Xenova/whisper-tiny/",
+        "hfrepo": "Xenova/whisper-tiny/"
     },
     {
         "category": "default",
         "name": "hf-whisper-decoder",
         "gen": "hf-whisper-decoder",
         "path": "Xenova/whisper-tiny/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=1"
+        "args": "&seqlen=1",
+        "source": "https://huggingface.co/Xenova/whisper-tiny/",
+        "hfrepo": "Xenova/whisper-tiny/"
     },
     {
         "category": "default",
         "name": "hf-whisper-decoder-iob",
         "gen": "hf-whisper-decoder",
         "path": "Xenova/whisper-tiny/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=1&io_binding=1"
+        "args": "&seqlen=1&io_binding=1",
+        "source": "https://huggingface.co/Xenova/whisper-tiny/",
+        "hfrepo": "Xenova/whisper-tiny/"
     },
     {
         "category": "default",
@@ -219,24 +270,25 @@
         "args": "&seqlen=1&io_binding=1"
     },
     {
-        "category": "error",
-        "name": "whisper-turbo-encoder",
-        "gen": "whisper-turbo-encoder",
-        "path": "tjs/whisper-large-v3-turbo/onnx/encoder_model_fp16.onnx"
+        "category": "local",
+        "name": "whisper-opt-encoder",
+        "gen": "whisper-opt-encoder",
+        "path": "tjs/whisper-opt/whisper-tiny_encoder_fp16.onnx"
     },
     {
-        "category": "error",
-        "name": "whisper-turbo-decoder-iob",
-        "gen": "whisper-turbo-decoder",
-        "path": "tjs/whisper-large-v3-turbo/onnx/decoder_model_merged_fp16.onnx",
-        "args": "&seqlen=1&io_binding=1"
+        "category": "local",
+        "name": "whisper-opt-decoder",
+        "gen": "whisper-opt-decoder",
+        "path": "tjs/whisper-opt/whisper-tiny_decoder_fp16.onnx",
+        "args": "&seqlen=1"
     },
     {
         "category": "default",
         "name": "moonshine-encoder",
         "gen": "moonshine-encoder",
         "path": "tjs/moonshine-tiny-ONNX/onnx/encoder_model.onnx",
-        "source": "https://huggingface.co/onnx-community/moonshine-tiny-ONNX"
+        "source": "https://huggingface.co/onnx-community/moonshine-tiny-ONNX",
+        "hfrepo": "onnx-community/moonshine-tiny-ONNX"
     },
     {
         "category": "default",
@@ -244,7 +296,8 @@
         "gen": "moonshine-decoder",
         "path": "tjs/moonshine-tiny-ONNX/onnx/decoder_model_merged_q4.onnx",
         "args": "&seqlen=1&io_binding=1",
-        "source": "https://huggingface.co/onnx-community/moonshine-tiny-ONNX"
+        "source": "https://huggingface.co/onnx-community/moonshine-tiny-ONNX",
+        "hfrepo": "onnx-community/moonshine-tiny-ONNX"
     },
     {
         "category": "default",
@@ -260,35 +313,40 @@
         "path": "onnx-community/Kokoro-82M-v1.0-ONNX/onnx/model.onnx",
         "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX",
         "rtol": 0.2,
-        "atol": 0.2
+        "atol": 0.2,
+        "hfrepo": "onnx-community/Kokoro-82M-v1.0-ONNX"
     },
     {
         "category": "default",
         "name": "dino-vitb16",
         "gen": "img224",
         "path": "tjs/facebook/dino-vitb16/onnx/model.onnx",
-        "source": "https://huggingface.co/Xenova/dino-vitb16"
+        "source": "https://huggingface.co/Xenova/dino-vitb16",
+        "hfrepo": "Xenova/dino-vitb16"
     },
     {
         "category": "default",
         "name": "clip-vit-base-patch16",
         "gen": "clip",
         "path": "tjs/openai/clip-vit-base-patch16/onnx/model.onnx",
-        "source": "https://huggingface.co/Xenova/clip-vit-base-patch16"
+        "source": "https://huggingface.co/Xenova/clip-vit-base-patch16",
+        "hfrepo": "Xenova/clip-vit-base-patch16"
     },
     {
         "category": "default",
         "name": "vit-base-patch16-224",
         "gen": "img224",
         "path": "tjs/google/vit-base-patch16-224/onnx/model.onnx",
-        "source": "https://huggingface.co/Xenova/vit-base-patch16-224"
+        "source": "https://huggingface.co/Xenova/vit-base-patch16-224",
+        "hfrepo": "Xenova/vit-base-patch16-224"
     },
     {
         "category": "default",
         "name": "vit-gpt2-image-captioning",
         "gen": "bart-large-12",
         "path": "tjs/nlpconnect/vit-gpt2-image-captioning/onnx/decoder_model_merged.onnx",
-        "source": "https://huggingface.co/Xenova/vit-gpt2-image-captioning"
+        "source": "https://huggingface.co/Xenova/vit-gpt2-image-captioning",
+        "hfrepo": "Xenova/vit-gpt2-image-captioning"
     },
     {
         "category": "default",
@@ -296,69 +354,64 @@
         "gen": "sam-encoder",
         "path": "tjs/sam-vit-base/onnx/vision_encoder.onnx",
         "source": "https://huggingface.co/Xenova/sam-vit-base",
-        "argsy": "&min_query_count=3"
+        "hfrepo": "Xenova/sam-vit-base",
+        "args": "&min_query_count=3"
     },
     {
         "category": "default",
         "name": "sam-b-decoder",
         "gen": "sam-decoder",
         "path": "tjs/sam-vit-base/onnx/prompt_encoder_mask_decoder.onnx",
-        "source": "https://huggingface.co/Xenova/sam-vit-base"
+        "source": "https://huggingface.co/Xenova/sam-vit-base",
+        "hfrepo": "Xenova/sam-vit-base"
     },
     {
         "category": "default",
         "name": "sam-b-decoder-fp16",
         "gen": "sam-decoder",
         "path": "tjs/sam-vit-base/onnx/prompt_encoder_mask_decoder_fp16.onnx",
-        "source": "https://huggingface.co/Xenova/sam-vit-base"
+        "source": "https://huggingface.co/Xenova/sam-vit-base",
+        "hfrepo": "Xenova/sam-vit-base"
     },
     {
         "category": "default",
         "name": "sam-h-encoder",
         "gen": "sam-encoder",
         "path": "tjs/sam-vit-huge/onnx/vision_encoder.onnx",
-        "source": "https://huggingface.co/Xenova/sam-vit-huge"
+        "source": "https://huggingface.co/Xenova/sam-vit-huge",
+        "hfrepo": "Xenova/sam-vit-huge"
     },
     {
         "category": "default",
         "name": "sam-h-decoder",
         "gen": "sam-decoder",
         "path": "tjs/sam-vit-huge/onnx/prompt_encoder_mask_decoder.onnx",
-        "source": "https://huggingface.co/Xenova/sam-vit-huge"
+        "source": "https://huggingface.co/Xenova/sam-vit-huge",
+        "hfrepo": "Xenova/sam-vit-huge"
     },
     {
         "category": "default",
         "name": "sam-h-decoder-fp16",
         "gen": "sam-decoder",
         "path": "tjs/sam-vit-huge/onnx/prompt_encoder_mask_decoder_fp16.onnx",
-        "source": "https://huggingface.co/Xenova/sam-vit-huge"
+        "source": "https://huggingface.co/Xenova/sam-vit-huge",
+        "hfrepo": "Xenova/sam-vit-huge"
     },
     {
         "category": "default",
         "name": "slimsam-77-uniform-encoder",
         "gen": "slimsam-encoder",
         "path": "tjs/slimsam-77-uniform/onnx/vision_encoder.onnx",
-        "source": "https://huggingface.co/Xenova/slimsam-77-uniform"
+        "source": "https://huggingface.co/Xenova/slimsam-77-uniform",
+        "hfrepo": "Xenova/slimsam-77-uniform"
     },
     {
         "category": "default",
         "name": "slimsam-77-uniform-decoder",
         "gen": "data/slimsam.json",
         "path": "tjs/slimsam-77-uniform/onnx/prompt_encoder_mask_decoder.onnx",
-        "source": "https://huggingface.co/Xenova/slimsam-77-uniform"
-    },
-    {
-        "category": "default",
-        "name": "bart-large-encoder",
-        "gen": "bert64",
-        "path": "tjs/facebook/bart-large-cnn/onnx/encoder_model.onnx"
-    },
-    {
-        "category": "default",
-        "name": "distilbert-base-uncased-mnli",
-        "gen": "bert64",
-        "path": "tjs/distilbert-base-uncased-mnli/onnx/model.onnx",
-        "args": "&seqlen=50"
+        "source": "https://huggingface.co/Xenova/slimsam-77-uniform",
+        "hfrepo": "Xenova/slimsam-77-uniform"
     },
     {
         "category": "default",
@@ -372,21 +425,27 @@
         "name": "distilbart-cnn-6-6-decoder",
         "gen": "bart-cnn",
         "path": "tjs/distilbart-cnn-6-6/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=168&min_query_count=5"
+        "args": "&seqlen=168&min_query_count=5",
+        "source": "https://huggingface.co/Xenova/distilbart-cnn-6-6",
+        "hfrepo": "Xenova/distilbart-cnn-6-6"
     },
     {
         "category": "default",
         "name": "vit-gpt2-image-captioning-encoder",
         "gen": "img224",
         "path": "tjs/vit-gpt2-image-captioning/onnx/encoder_model.onnx",
-        "args": "&seqlen=168"
+        "args": "&seqlen=168",
+        "source": "https://huggingface.co/Xenova/vit-gpt2-image-captioning",
+        "hfrepo": "Xenova/vit-gpt2-image-captioning"
     },
     {
         "category": "default",
         "name": "vit-gpt2-image-captioning-decoder",
         "gen": "bart-large-12",
         "path": "tjs/vit-gpt2-image-captioning/onnx/decoder_model_merged.onnx",
-        "args": "&seqlen=168"
+        "args": "&seqlen=168",
+        "source": "https://huggingface.co/Xenova/vit-gpt2-image-captioning",
+        "hfrepo": "Xenova/vit-gpt2-image-captioning"
     },
     {
         "category": "default",
@@ -413,7 +472,8 @@
         "gen": "img640x640",
         "nocheck": 1,
         "path": "tjs/yolov9-c_all/onnx/model.onnx",
-        "source": "https://huggingface.co/Xenova/yolov9-c_all"
+        "source": "https://huggingface.co/Xenova/yolov9-c_all",
+        "hfrepo": "Xenova/yolov9-c_all"
     },
     {
         "category": "default",
@@ -426,42 +486,49 @@
         "category": "default",
         "name": "detr-resnet-50",
         "source": "https://huggingface.co/Xenova/detr-resnet-50",
+        "hfrepo": "Xenova/detr-resnet-50",
         "gen": "detr",
-        "path": "tjs/facebook/detr-resnet-50/onnx/model.onnx"
+        "path": "tjs/detr-resnet-50/onnx/model.onnx"
     },
     {
         "category": "default",
         "name": "detr-resnet-50-fp16",
         "source": "https://huggingface.co/Xenova/detr-resnet-50",
+        "hfrepo": "Xenova/detr-resnet-50",
         "gen": "detr",
-        "path": "tjs/facebook/detr-resnet-50/onnx/model-fp16.onnx"
+        "path": "tjs/detr-resnet-50/onnx/model_fp16.onnx"
     },
     {
         "category": "default",
         "name": "detr-resnet-50-800",
         "source": "https://huggingface.co/Xenova/detr-resnet-50",
+        "hfrepo": "Xenova/detr-resnet-50",
         "gen": "detr-800",
-        "path": "tjs/facebook/detr-resnet-50/onnx/model.onnx"
+        "path": "tjs/detr-resnet-50/onnx/model.onnx"
     },
     {
         "category": "default",
         "name": "squeezebert",
         "gen": "bert64",
-        "path": "tjs/squeezebert/squeezebert-uncased/onnx/model.onnx"
+        "path": "tjs/squeezebert/squeezebert-uncased/onnx/model.onnx",
+        "source": "https://huggingface.co/Xenova/squeezebert-uncased",
+        "hfrepo": "Xenova/squeezebert-uncased"
     },
     {
         "category": "default",
         "name": "convnextv2-base-1k-224",
         "gen": "img224",
         "path": "tjs/convnextv2-base-1k-224/onnx/model.onnx",
-        "source": "https://huggingface.co/Xenova/convnextv2-base-1k-224"
+        "source": "https://huggingface.co/Xenova/convnextv2-base-1k-224",
+        "hfrepo": "Xenova/convnextv2-base-1k-224"
     },
     {
         "category": "default",
         "name": "convnextv2-tiny-1k-224",
         "gen": "img224",
         "path": "tjs/convnextv2-tiny-1k-224/onnx/model.onnx",
-        "source": "https://huggingface.co/Xenova/convnextv2-tiny-1k-224"
+        "source": "https://huggingface.co/Xenova/convnextv2-tiny-1k-224",
+        "hfrepo": "Xenova/convnextv2-tiny-1k-224"
     },
     {
         "category": "default",
@@ -469,7 +536,8 @@
         "gen": "img224",
         "path": "tjs/swin2SR-realworld-sr-x4-64-bsrgan-psnr/onnx/model.onnx",
         "args": "&min_query_count=3",
-        "source": "https://huggingface.co/Xenova/swin2SR-realworld-sr-x4-64-bsrgan-psnr"
+        "source": "https://huggingface.co/Xenova/swin2SR-realworld-sr-x4-64-bsrgan-psnr",
+        "hfrepo": "Xenova/swin2SR-realworld-sr-x4-64-bsrgan-psnr"
     },
     {
         "category": "default",
@@ -477,14 +545,16 @@
         "gen": "img224",
         "path": "tjs/swin2SR-lightweight-x2-64/onnx/model.onnx",
         "args": "&min_query_count=3",
-        "source": "https://huggingface.co/Xenova/swin2SR-lightweight-x2-64"
+        "source": "https://huggingface.co/Xenova/swin2SR-lightweight-x2-64",
+        "hfrepo": "Xenova/swin2SR-lightweight-x2-64"
     },
     {
         "category": "default",
         "name": "vitmatte-small",
         "gen": "img4x224x224",
         "path": "tjs/vitmatte-small-distinctions-646/onnx/model.onnx",
-        "source": "https://huggingface.co/Xenova/vitmatte-small-composition-1k"
+        "source": "https://huggingface.co/Xenova/vitmatte-small-composition-1k",
+        "hfrepo": "Xenova/vitmatte-small-composition-1k"
     },
     {
         "category": "default",
@@ -516,21 +586,24 @@
         "gen": "img640x640",
         "path": "partya/SegFormer/segformer-b5-finetuned-ade-640-640.onnx",
         "args": "&min_query_count=5",
-        "source": "https://huggingface.co/Xenova/segformer-b5-finetuned-ade-640-640"
+        "source": "https://huggingface.co/Xenova/segformer-b5-finetuned-ade-640-640",
+        "hfrepo": "Xenova/segformer-b5-finetuned-ade-640-640"
     },
     {
         "category": "default",
         "name": "gte-small",
         "gen": "bert64",
         "path": "gte-small/model.onnx",
-        "source": "https://huggingface.co/Xenova/gte-small"
+        "source": "https://huggingface.co/Xenova/gte-small",
+        "hfrepo": "Xenova/gte-small"
     },
     {
         "category": "default",
         "name": "clipseg-rd64-refined",
         "gen": "clipseg",
         "path": "tjs/clipseg-rd64-refined/onnx/model.onnx",
-        "source": "https://huggingface.co/Xenova/clipseg-rd64-refined"
+        "source": "https://huggingface.co/Xenova/clipseg-rd64-refined",
+        "hfrepo": "Xenova/clipseg-rd64-refined"
     },
     {
         "category": "default",
@@ -545,7 +618,9 @@
         "path": "onnx-sd-turbo-fp16/text_encoder/model.onnx",
         "nowasm": true,
         "rtol": 0.05,
-        "atol": 0.5
+        "atol": 0.5,
+        "source": "https://huggingface.co/schmuell/sd-turbo-ort-web",
+        "hfrepo": "schmuell/sd-turbo-ort-web"
     },
     {
         "category": "default",
@@ -554,7 +629,9 @@
         "path": "onnx-sd-turbo-fp16/unet/model.onnx",
         "nowasm": true,
         "rtol": 0.1,
-        "atol": 0.1
+        "atol": 0.1,
+        "source": "https://huggingface.co/schmuell/sd-turbo-ort-web",
+        "hfrepo": "schmuell/sd-turbo-ort-web"
     },
     {
         "category": "default",
@@ -563,7 +640,9 @@
         "path": "onnx-sd-turbo-fp16/vae_decoder/model.onnx",
         "nowasm": true,
         "rtol": 0.05,
-        "atol": 0.1
+        "atol": 0.1,
+        "source": "https://huggingface.co/schmuell/sd-turbo-ort-web",
+        "hfrepo": "schmuell/sd-turbo-ort-web"
     },
     {
         "category": "default",
@@ -571,10 +650,14 @@
         "gen": "tinyllama-fp16",
         "path": "llm/TinyLlama-1.1B-Chat-v1.0/model.onnx",
         "args": "&ext=model.onnx.data",
-        "argmax": ["logits"],
+        "argmax": [
+            "logits"
+        ],
         "rtol": 0.01,
         "atol": 0.9,
-        "nowasm": true
+        "nowasm": true,
+        "source": "https://huggingface.co/schmuell/TinyLlama-1.1B-Chat-v1.0",
+        "hfrepo": "schmuell/TinyLlama-1.1B-Chat-v1.0"
     },
     {
         "category": "default",
@@ -582,47 +665,56 @@
         "gen": "phi3",
         "path": "llm/Phi-3.5-mini-instruct/model.onnx",
         "args": "&ext=model.onnx.data",
-        "argmax": ["logits"],
+        "argmax": [
+            "logits"
+        ],
         "rtol": 0.01,
         "atol": 0.9,
-        "nowasm": true
+        "nowasm": true,
+        "source": "https://huggingface.co/onnx-community/Phi-3.5-mini-instruct-onnx-web",
+        "hfrepo": "onnx-community/Phi-3.5-mini-instruct-onnx-web"
     },
     {
         "category": "default",
         "name": "RMBG-1.4",
         "gen": "img1024",
-        "path": "tjs/RMBG-1.4/onnx/model.onnx"
+        "path": "tjs/RMBG-1.4/onnx/model.onnx",
+        "source": "https://huggingface.co/briaai/RMBG-1.4",
+        "hfrepo": "briaai/RMBG-1.4"
     },
     {
         "category": "default",
         "name": "RMBG-1.4-fp16",
         "gen": "img1024",
-        "path": "tjs/RMBG-1.4/onnx/model_fp16.onnx"
+        "path": "tjs/RMBG-1.4/onnx/model_fp16.onnx",
+        "source": "https://huggingface.co/briaai/RMBG-1.4",
+        "hfrepo": "briaai/RMBG-1.4"
     },
     {
         "name": "throughput",
         "gen": "data/throughput.json",
         "path": "throughput/model.onnx",
-        "category": ""
+        "category": "local"
     },
     {
         "name": "nbitmm-int4",
         "gen": "data/nbitmm.json",
         "path": "nbitmm/model-int4.onnx",
-        "category": ""
+        "category": "local"
     },
     {
         "name": "nbitmm-int4-ac4",
         "gen": "data/nbitmm.json",
         "path": "nbitmm/model-int4-ac4.onnx",
-        "category": ""
+        "category": "local"
     },
     {
         "category": "default",
         "name": "florence-vision-fp16",
         "gen": "img768",
         "path": "microsoft/Florence-2-base-ft/onnx/vision_encoder_fp16.onnx",
-        "source": "https://huggingface.co/onnx-community/Florence-2-base",
+        "source": "https://huggingface.co/onnx-community/Florence-2-base-ft",
+        "hfrepo": "onnx-community/Florence-2-base-ft",
         "noweb": 1
     },
     {
@@ -630,7 +722,8 @@
         "name": "florence-vision-fp32",
         "gen": "img768",
         "path": "microsoft/Florence-2-base-ft/onnx/vision_encoder.onnx",
-        "source": "https://huggingface.co/onnx-community/Florence-2-base",
+        "source": "https://huggingface.co/onnx-community/Florence-2-base-ft",
+        "hfrepo": "onnx-community/Florence-2-base-ft",
         "rtol": 0.01,
         "atol": 0.02
     },
@@ -639,7 +732,8 @@
         "name": "florence-vision-fp32q4",
         "gen": "img768",
         "path": "microsoft/Florence-2-base-ft/onnx/vision_encoder_q4.onnx",
-        "source": "https://huggingface.co/onnx-community/Florence-2-base",
+        "source": "https://huggingface.co/onnx-community/Florence-2-base-ft",
+        "hfrepo": "onnx-community/Florence-2-base-ft",
         "rtol": 0.01,
         "atol": 0.02
     },
@@ -647,14 +741,16 @@
         "category": "default",
         "name": "florence-embed_tokens",
         "gen": "florence-embed",
-        "source": "https://huggingface.co/onnx-community/Florence-2-base",
+        "source": "https://huggingface.co/onnx-community/Florence-2-base-ft",
+        "hfrepo": "onnx-community/Florence-2-base-ft",
         "path": "microsoft/Florence-2-base-ft/onnx/embed_tokens.onnx"
     },
     {
         "category": "default",
         "name": "florence-decoder",
         "gen": "florence-decoder",
-        "source": "https://huggingface.co/onnx-community/Florence-2-base",
+        "source": "https://huggingface.co/onnx-community/Florence-2-base-ft",
+        "hfrepo": "onnx-community/Florence-2-base-ft",
         "path": "microsoft/Florence-2-base-ft/onnx/decoder_model_merged.onnx",
         "rtol": 0.005,
         "atol": 0.05
@@ -663,7 +759,8 @@
         "category": "default",
         "name": "florence-decoder-q4",
         "gen": "florence-decoder",
-        "source": "https://huggingface.co/onnx-community/Florence-2-base",
+        "source": "https://huggingface.co/onnx-community/Florence-2-base-ft",
+        "hfrepo": "onnx-community/Florence-2-base-ft",
         "path": "microsoft/Florence-2-base-ft/onnx/decoder_model_merged_q4.onnx",
         "rtol": 0.005,
         "atol": 0.05
@@ -673,7 +770,8 @@
         "name": "florence-encoder",
         "gen": "florence-encoder",
         "path": "microsoft/Florence-2-base-ft/onnx/encoder_model.onnx",
-        "source": "https://huggingface.co/onnx-community/Florence-2-base",
+        "source": "https://huggingface.co/onnx-community/Florence-2-base-ft",
+        "hfrepo": "onnx-community/Florence-2-base-ft",
         "rtol": 0.02,
         "atol": 0.09
     },
@@ -682,21 +780,25 @@
         "name": "florence-encoder-q4",
         "gen": "florence-encoder",
         "path": "microsoft/Florence-2-base-ft/onnx/encoder_model_q4.onnx",
-        "source": "https://huggingface.co/onnx-community/Florence-2-base",
+        "hfrepo": "onnx-community/Florence-2-base-ft",
+        "source": "https://huggingface.co/onnx-community/Florence-2-base-ft",
         "rtol": 0.02,
         "atol": 0.09
     },
     {
+        "category": "local",
         "name": "vti",
         "gen": "vti",
         "path": "vti/vti-b-p32-visual.onnx"
     },
     {
+        "category": "local",
         "name": "vti-fp16",
         "gen": "vti",
         "path": "vti/vti-b-p32-visual_q4f16.onnx"
     },
     {
+        "category": "local",
         "name": "VideoSuperResolution-DXM",
         "gen": "img224",
         "path": "VideoSuperResolution-DXM-FP32.onnx"
@@ -706,7 +808,8 @@
         "name": "RTMO-t",
         "gen": "img416x416",
         "path": "tjs/RTMO-t/onnx/model.onnx",
-        "source": "https://huggingface.co/Xenova/RTMO-t"
+        "source": "https://huggingface.co/Xenova/RTMO-t",
+        "hfrepo": "Xenova/RTMO-t"
     },
     {
         "category": "default",
@@ -714,39 +817,53 @@
         "gen": "img640",
         "nocheck": 1,
         "path": "tjs/rtdetr_r18vd/onnx/model_fp16.onnx",
-        "source": "https://huggingface.co/onnx-community/rtdetr_r18vd"
+        "source": "https://huggingface.co/onnx-community/rtdetr_r18vd",
+        "hfrepo": "onnx-community/rtdetr_r18vd"
     },
     {
         "category": "default",
         "name": "modnet",
         "gen": "img640",
         "path": "tjs/modnet/onnx/model.onnx",
-        "source": "https://huggingface.co/Xenova/modnet"
+        "source": "https://huggingface.co/Xenova/modnet",
+        "hfrepo": "Xenova/modnet"
     },
     {
-        "name": "lama-onnx",
-        "gen": "lama-onnx",
-        "path": "tjs/LaMa-ONNX/lama_fp32.onnx",
-        "source": "https://huggingface.co/Carve/LaMa-ONNX"
-    },
-    {
-        "name": "opus-mt-mul-en-decoder",
-        "gen": "opus-mt-mul-en-decoder",
-        "path": "tjs/opus-mt-mul-en/onnx/decoder_model_merged_fp16.onnx",
-        "source": "https://huggingface.co/Xenova/opus-mt-mul-en"
-    },
-    {
-        "name": "opus-mt-mul-en-encoder",
-        "gen": "opus-mt-mul-en-encoder",
-        "path": "tjs/opus-mt-mul-en/onnx/encoder_model_fp16.onnx",
-        "rtol": 0.01,
-        "atol": 0.01,
-        "source": "https://huggingface.co/Xenova/opus-mt-mul-en"
-    },
-    {
+        "category": "local",
         "name": "foo",
-        "gen": "foo",
-        "path": "tjs/foo/test-model.onnx"
+        "gen": "docling-vision-encoder",
+        "path": "foo/model.onnx"
+    },
+    {
+        "category": "default",
+        "name": "chatter-box-speechencoder",
+        "gen": "chatter-box-speechencoder",
+        "path": "tjs/chatterbox-ONNX/onnx/speech_encoder.onnx",
+        "source": "https://huggingface.co/onnx-community/chatterbox-ONNX",
+        "hfrepo": "onnx-community/chatterbox-ONNX"
+    },
+    {
+        "category": "default",
+        "name": "docling-vision-encoder",
+        "gen": "docling-vision-encoder",
+        "path": "tjs/granite-docling-258M-ONNX/onnx/vision_encoder.onnx",
+        "source": "https://huggingface.co/onnx-community/granite-docling-258M-ONNX",
+        "hfrepo": "onnx-community/granite-docling-258M-ONNX"
+    },
+    {
+        "category": "default",
+        "name": "edge-tam-encoder",
+        "gen": "edge-tam-encoder",
+        "path": "tjs/EdgeTAM/onnx/prompt_encoder_mask_decoder.onnx",
+        "source": "https://huggingface.co/onnx-community/EdgeTAM",
+        "hfrepo": "onnx-community/EdgeTAM"
+    },
+    {
+        "category": "default",
+        "name": "supertonic-denoiser",
+        "gen": "supertonic-denoiser",
+        "path": "tjs/Supertonic-TTS-ONNX/onnx/latent_denoiser.onnx",
+        "source": "https://huggingface.co/onnx-community/Supertonic-TTS-ONNX",
+        "hfrepo": "onnx-community/Supertonic-TTS-ONNX"
     }
-
 ]

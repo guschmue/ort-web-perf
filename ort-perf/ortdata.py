@@ -73,9 +73,13 @@ def transformer(feeds, tokens, meta, kv_len=0):
     if "use_cache_branch" in meta:
         feeds["use_cache_branch"] = np.array([False], dtype=bool)
     for k, v in meta.items():
-        if k.startswith("past_key_values"):
+        if k.startswith("past_"):
             shape = v.shape
-            shape[2] = kv_len
+            if "_cross" in k:
+                shape[2] = 1500
+            else:
+                shape[2] = kv_len
+            shape = v.shape
             feeds[k] = fill(shape, v.dtype, 1.)
     return feeds
 
@@ -230,6 +234,12 @@ def gen_one_input(feed, name, type, meta):
         tokens = fill([1, 448], np.int64)
         transformer(feed, tokens, meta)
         feed["encoder_hidden_states"] = fill([1, 1500, 1280], meta["encoder_hidden_states"].dtype)
+
+    elif type == "whisper-opt-encoder":
+        feed["audio_features"] = fill([1, 80, 3000], meta["audio_features"].dtype)
+    elif type in ["whisper-opt-decoder"]:
+        tokens = fill([1, 80], np.int32, 1)
+        transformer(feed, tokens, meta, kv_len=0)
     elif type == "moonshine-encoder":
         feed["input_values"] = fill([1, 3000], meta["input_values"].dtype)
     elif type in ["moonshine-decoder"]:
@@ -284,8 +294,31 @@ def gen_one_input(feed, name, type, meta):
         feed['pre_x'] = create_image([2160, 3840])
         # feed['pre_x'] = fill([1, 3, 2160, 3840], "float32", 0.5)
         feed['orig_target_sizes'] = np.array([640, 640], dtype=np.int64).reshape(1, 2)
+    elif type in ["chatter-box-speechencoder"]:
+        feed['audio_values'] = np.load("audio_values.npy")
+    elif type in ["docling-vision-encoder"]:
+        feed['pixel_values'] = np.load("docling-vision-encoder.npy")
+        feed['pixel_attention_mask'] = np.ones((1, 17, 512, 512)).astype(np.bool_)
+    elif type in ["edge-tam-encoder"]:
+        feed['input_points'] = fill([1, 1, 0, 2], np.float32, val=1)
+        feed['input_labels'] = fill([1, 1, 0], np.int64, val=1)
+        feed['input_boxes'] = fill([1, 1, 4], np.float32, val=1)
+        feed['image_embeddings.0'] = fill([1, 32, 256, 256], np.float32, val=1)
+        feed['image_embeddings.1'] = fill([1, 64, 128, 128], np.float32, val=1)
+        feed['image_embeddings.2'] = fill([1, 256, 64, 64], np.float32, val=1)
+    elif type in ["supertonic-denoiser"]:
+        # feed['noisy_latents'] = fill([1, 144, 44], np.float32, val=1)
+        # feed['encoder_outputs'] = fill([1, 38, 256], np.float32, val=1)
+        # feed['style'] = fill([1, 101, 128], np.float32, val=1)
+        feed['noisy_latents'] = np.random.randn(1, 144, 44).astype("float32")
+        feed['encoder_outputs'] = np.random.randn(1, 38, 256).astype("float32")
+        feed['style'] = np.random.randn(1, 101, 128).astype("float32")
+        feed['latent_mask'] = fill([1, 44], np.int64, val=1)
+        feed['attention_mask'] = fill([1, 38], np.int64, val=1)
+        feed['timestep'] = fill([1], np.float32, val=1)
+        feed['num_inference_steps'] = fill([5], np.float32, val=1)
     else:
-        raise NotImplementedError("don't know how to generate data for " + type)
+        raise ValueError(f"Unknown data type: {type}")
 
 
 class metadata:
@@ -297,13 +330,16 @@ class metadata:
 
 def gen_data(sess, type, verbose):
     feeds = {}
-    if type and type.startswith("data/"):
-        with open(type) as f:
+    if type and type.endswith(".json"):
+        with open(type, "r", encoding="utf-8") as f:
             js = json.load(f)
             for name, item in js.items():
                 shape = item['shape']
                 t = np.array(item['data']).astype(item['dtype']).reshape(shape)
                 feeds[name] = t
+        return feeds
+    if type and type.endswith(".npy"):
+        feeds = np.load(type, allow_pickle=True).item()
         return feeds
 
     meta = {}
@@ -384,3 +420,4 @@ def validate_as_json(feed, fname, rtol=RTOL, atol=ATOL):
         v2 = np.array(j[k]['data']).astype(j[k]['dtype']).reshape(j[k]['shape'])
         ret = np.allclose(v, v2, rtol, atol)
         print(f"{k}: {ret}")
+
