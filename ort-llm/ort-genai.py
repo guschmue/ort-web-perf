@@ -9,7 +9,7 @@ from transformers import AutoTokenizer, AutoConfig
 # python ort-genai.py --model phi4-8qe --task generation --provider webgpu --use-iob  --static --system-prompt --do_sample --verbose --temperature 1.0 --top_k 1
 
 
-MAX_LEN = 2048
+MAX_LEN = 2 * 1024
 
 SYSTEM_PROMPT = "You are a helpful assistant. Give short and concise answers."
 
@@ -51,7 +51,7 @@ def get_args():
 def main():
     args = get_args()
 
-    model_root = os.environ.get("ORT_LLM_MODELS", "models")
+    model_root = args.root
 
     with open(args.config, "r", encoding="utf-8") as f:
         config = json.load(f)
@@ -59,7 +59,8 @@ def main():
     model = config["models"][args.model]
     model_path = os.path.join(model_root, model["path"])
     if not args.postfix and args.provider in {"cpu", "cuda"}:
-        args.postfix = args.provider
+        if os.path.exists(model_path + "-" + args.provider):
+            args.postfix = args.provider
     if args.postfix:
         if os.path.exists(model_path + "-" + args.postfix):
             model_path = model_path + "-" + args.postfix
@@ -72,12 +73,15 @@ def main():
     with open(config_path, "r", encoding="utf-8") as f:
         gen_config = json.load(f)
     opt = { 
-        "ep.webgpuexecutionprovider.validationMode": "0" 
     }
-    if "pinemb" in args.model:
-        args.pinemb = args.model["pinemb"]
+    gc = model.get("graph_capture", 0)
+    if gc:
+        opt["enableGraphCapture"] = "1"
+        opt["validationMode"] = "disabled"
+    if "pinemb" in model:
+        args.pinemb = model["pinemb"]
     if args.pinemb:
-        opt["ep.webgpuexecutionprovider.forceCpuNodeNames"] = "/model/embed_tokens/Gather\n/model/embed_tokens/QEGatherScales"
+        opt["forceCpuNodeNames"] = args.pinemb
     if "provider_options" in gen_config["model"]["decoder"]["session_options"]:
         del gen_config["model"]["decoder"]["session_options"]["provider_options"]
     if "enable_profiling" in gen_config["model"]["decoder"]["session_options"]:
@@ -117,8 +121,11 @@ def main():
 
     # Keep asking for input prompts in a loop
     tokenizera = AutoTokenizer.from_pretrained(model_path, trust_remote_code=False, local_files_only=True)
-    message = [{"role": "user", "content": task}]
-    prompt = tokenizera.apply_chat_template(message, add_generation_prompt=True, return_dict=False, tokenize=False)
+    try:
+        message = [{"role": "user", "content": task}]
+        prompt = tokenizera.apply_chat_template(message, add_generation_prompt=True, return_dict=False, tokenize=False)
+    except Exception:
+        prompt = task
     if args.verbose:
         print(prompt)
 
