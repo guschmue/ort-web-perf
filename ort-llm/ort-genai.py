@@ -98,8 +98,8 @@ def main():
         json.dump(gen_config, f, indent=4)
 
     model = og.Model(model_path)
-    tokenizer = og.Tokenizer(model)
-    tokenizer_stream = tokenizer.create_stream()
+    #tokenizer = og.Tokenizer(model)
+    #tokenizer_stream = tokenizer.create_stream()
     search_options = {
         name: getattr(args, name)
         for name in [
@@ -129,7 +129,7 @@ def main():
     if args.verbose:
         print(prompt)
 
-    input_tokens = tokenizer.encode(prompt)
+    input_tokens = tokenizera.encode(prompt)
 
     params = og.GeneratorParams(model)
     params.set_search_options(**search_options)
@@ -172,7 +172,7 @@ def main():
                     first_token_time = time.time()
                 new_token = generator.get_next_tokens()[0]
                 if not args.quiet:
-                    print(tokenizer_stream.decode(new_token), end="", flush=True)
+                    print(tokenizera.decode(new_token), end="", flush=True)
                 new_tokens.append(new_token)
                 if len(new_tokens) >= args.max_tokens:
                     break
@@ -205,7 +205,7 @@ def main():
     gen_tps = new_tokens_length / gen_time
 
     print(
-        f"{new_tokens_length // args.N} tokens in {took:.1f}sec, e2e:{e2e_tps:.1f} tps, prompt: {prompt_tps:.1f} tps, gen: {gen_tps:.1f} tps, ttft: {prompt_time:.2f} sec"
+        f"{args.model}: {new_tokens_length // args.N} tokens in {took:.1f}sec, e2e:{e2e_tps:.1f} tps, prompt: {prompt_tps:.1f} tps, gen: {gen_tps:.1f} tps, ttft: {prompt_time:.2f} sec"
     )
 
     if args.csv:

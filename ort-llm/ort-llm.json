@@ -1,11 +1,31 @@
 {
     "models": {
-        "trinity": {
-            "path": "onnx-community/Trinity-Nano-Preview-ONNX",
-            "external_data": 2
+        "lfm2-8b": {
+            "path": "LiquidAI/LFM2-8B-A1B-ONNX",
+            "external_data": 1
+        },
+        "qwen35-0.8b": {
+            "path": "llm/Qwen3.5-0.8B",
+            "external_data": 1
+        },
+        "qwen35-2b": {
+            "path": "llm/Qwen3.5-2B",
+            "external_data": 1
+        },
+        "qwen35-4b": {
+            "path": "llm/Qwen3.5-4B",
+            "external_data": 1
+        },
+        "qwen35-9b": {
+            "path": "llm/Qwen3.5-9B",
+            "external_data": 1
         },
         "lfm-1.2b": {
             "path": "LiquidAI/LFM2.5-1.2B-Thinking-ONNX",
+            "external_data": 1
+        },
+        "lfm-450m": {
+            "path": "onnx-community/LFM2-VL-450M-ONNX",
             "external_data": 1
         },
         "falkon-90m": {
@@ -86,8 +106,7 @@
         },
         "foo": {
             "path": "llm/foo",
-            "external_data": 1,
-            "pinemb": 1
+            "external_data": 1
         },
         "foo1": {
             "path": "llm/foo1",
@@ -126,8 +145,16 @@
             "external_data": 1,
             "graph_capture": 1
         },
+        "qwen3-1.7b-ex": {
+            "path": "llm/Qwen3-1.7B-experimental",
+            "external_data": 1
+        },
         "qwen3-4b": {
             "path": "llm/Qwen3-4B",
+            "external_data": 2
+        },
+        "qwen3-4b-tjs": {
+            "path": "tjs/Qwen3-4B-Instruct-2507-ONNX",
             "external_data": 2
         },
         "qwen3-8b": {

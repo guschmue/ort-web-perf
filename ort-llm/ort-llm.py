@@ -25,7 +25,7 @@ import shutil
 def get_args():
     parser = argparse.ArgumentParser(description="tool")
     parser.add_argument("--model", required=True, help="model")
-    parser.add_argument("--root", default="models", help="root for models")
+    parser.add_argument("--root", default="models", help="model root")
     parser.add_argument("--config", default="ort-llm.json", help="config")
     parser.add_argument("--N", "-N", type=int, default=1, help="measure N times")
     parser.add_argument("--device", type=int, default=0, help="device id")
@@ -157,6 +157,10 @@ class LLM(object):
                 break
         if not os.path.exists(model_file):
             raise RuntimeError(f"model file {model_file} not found")
+
+        # opt.optimized_model_filepath = "/tmp/tt/t.onnx"
+        # opt.add_session_config_entry("session.optimized_model_external_initializers_file_name", "t.onnx.data")
+
         self.sess = ort.InferenceSession(
             model_file, sess_options=opt, providers=providers
         )
@@ -169,6 +173,8 @@ class LLM(object):
         self.input_names = [i.name for i in self.sess.get_inputs()]
         self.need_position_id = "position_ids" in self.input_names
         self.logits_idx = self.output_names.index("logits")
+        if "text_config" in self.config:
+            self.config = self.config.text_config
         self.eos = self.config.eos_token_id
         if not isinstance(self.eos, list):
             self.eos = [self.eos]
@@ -183,16 +189,21 @@ class LLM(object):
             dim_kv = conf.head_dim
         except:
             dim_kv = int(conf.hidden_size / conf.num_attention_heads)
-        kv_dims = [1, conf.num_key_value_heads, 0, dim_kv]
+        # kv_dims = [1, conf.num_key_value_heads, 0, dim_kv]
         for i, input_meta in enumerate(self.sess.get_inputs()):
-            if input_meta.name.startswith("past_key"):
+            shape = input_meta.shape
+            for j in range(len(shape)):
+                if shape[j] in ["batch", "batch_size"]:
+                    shape[j] = 1
+                if shape[j] in ["past_sequence_len", "past_sequence_length"]:
+                    shape[j] = 0
+            if input_meta.name.startswith("past_"):
                 dtype = np.float32 if input_meta.type == "tensor(float)" else np.float16
-                self.feed[input_meta.name] = np.array([], dtype=dtype).reshape(kv_dims)
-            elif input_meta.name.startswith("past_"):
-                dtype = np.float32 if input_meta.type == "tensor(float)" else np.float16
-                shape = input_meta.shape
-                shape[0] = 1
                 self.feed[input_meta.name] = np.zeros(shape, dtype=dtype)
+            if input_meta.name == "num_logits_to_keep":
+                self.feed[input_meta.name] = np.array([1], dtype=np.int64)
+            if input_meta.name == "position_ids" and len(shape) == 3:
+                self.need_position_id = 3
         self.output_tokens = []
         if self.use_iob:
             self.iob = self.sess.io_binding()
@@ -239,6 +250,8 @@ class LLM(object):
 
         feed = self.feed
 
+        if "num_logits_to_keep" in feed:
+            input_names.append("num_logits_to_keep")
         if self.emb_session:
             emb_inputs = {"input_ids": tokens.reshape(1, len(tokens))}
             emb_outputs = self.emb_session.run(self.emb_output_names, emb_inputs)
@@ -260,16 +273,16 @@ class LLM(object):
                     seqlen - len(tokens), seqlen, dtype=np.int64
                 ).reshape([1, len(tokens)])
             else:
-                feed["position_ids"] = np.arange(seqlen, dtype=np.int64).reshape(
-                    [1, seqlen]
-                )
+                feed["position_ids"] = np.arange(seqlen, dtype=np.int64).reshape([1, seqlen])
+            if self.need_position_id == 3:
+                feed["position_ids"] = np.stack([feed["position_ids"], feed["position_ids"], feed["position_ids"]])
 
         first_token_time = 0
         start_time = time.time()
         while last_token not in self.eos and seqlen < max_tokens:
             feed["attention_mask"] = np.empty([1, seqlen], dtype=np.int64)
             feed["attention_mask"].fill(1)
-            if self.use_iob:
+            if self.use_iob and not values:
                 for name in input_names:
                     self.iob.bind_cpu_input(name, feed[name])
                 self.iob.bind_output("logits")
@@ -285,20 +298,12 @@ class LLM(object):
                 first_token_time = time.time()
 
             if values:
-                j = {}
                 for idx, name in enumerate(self.output_names):
                     if name.startswith("present."):
                         continue
-                    t = outputs[idx]
-                    v = t.flatten().tolist()[:10000000]
-                    j[self.output_names[idx]] = {
-                        "dtype": str(t.dtype),
-                        "shape": list(t.shape),
-                        "output-avg": float(t.mean()),
-                        "output-val": list(v),
-                    }
-                with open(values, "w") as f:
-                    f.write(json.dumps(j, indent=2))
+                    print(f"dumping {name}")
+                    name = name.replace("/", "_")
+                    np.save(f'{values}/{name}.npy', outputs[idx])
                 return 0
 
             if self.stats:
@@ -326,6 +331,8 @@ class LLM(object):
                 feed["input_ids"] = new_input_ids
             if self.need_position_id:
                 feed["position_ids"] = np.array([seqlen], dtype=np.int64).reshape(1, 1)
+                if self.need_position_id == 3:
+                    feed["position_ids"] = np.stack([feed["position_ids"], feed["position_ids"], feed["position_ids"]])
             seqlen += 1
             if cb:
                 cb(self.output_tokens, seqlen)
@@ -395,7 +402,7 @@ def main():
         prompt, return_tensors="np", return_attention_mask=False
     )  # , return_tensor: false, padding: true, truncation: true })
     prompt_tokens = len(input_ids["input_ids"][0])
-    _ = llm.generate(input_ids, keep_cache=False, max_tokens=1)
+    _ = llm.generate(input_ids, keep_cache=False, max_tokens=1, values=args.values)
 
     # timed run
     try:
@@ -443,7 +450,7 @@ def main():
     prompt_tps = prompt_tokens / prompt_time
     gen_tps = new_tokens_length / gen_time
     print(
-        f"{new_tokens_length} tokens in {took:.1f}sec, e2e:{e2e_tps:.1f} tps, prompt: {prompt_tps:.1f} tps, gen: {gen_tps:.1f} tps, ttft: {prompt_time:.2f} sec"
+        f"{args.model}: {new_tokens_length} tokens in {took:.1f}sec, e2e:{e2e_tps:.1f} tps, prompt: {prompt_tps:.1f} tps, gen: {gen_tps:.1f} tps, ttft: {prompt_time:.2f} sec"
     )
 
     if args.csv:
